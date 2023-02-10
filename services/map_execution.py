@@ -1,6 +1,7 @@
 from functools import reduce
+from typing import List
 
-import pandas as pd
+import dill
 
 
 class Structure:
@@ -14,34 +15,39 @@ class FunctionGenerators:
         return Structure(**dictionary)
 
     @staticmethod
-    def convert_string_to_function(function_as_string: str, function_name: str):
-        functions = {}
-        exec(function_as_string, globals(), functions)
-        return functions[function_name]
+    def convert_string_to_function(function_binary_for_dill: str):
+        return dill.loads(function_binary_for_dill)
 
 
 class MapAndShuffle(FunctionGenerators):
-    def __init__(self, filename: str):
-        self.csv = pd.read_csv(f"{filename}.csv").to_dict("records")
-        self.map_ = {}
+    def __init__(self, record_list: List[dict]):
+        self.record_list = record_list
+        self.mapped_groups = {}
+
+    def get_map(self):
+        return self.mapped_groups
 
     def map_function_on_data(self, map_function_as_string: str) -> None:
-        map_function = self.convert_string_to_function(
-            map_function_as_string, function_name="MapFunction"
-        )
-        self.map_ = {}
-        for data in self.csv:
+        map_function = self.convert_string_to_function(map_function_as_string)
+        self.mapped_groups = {}
+        for data in self.record_list:
             key, value = map_function(self.convert_dict_to_object(data))
-            if key not in self.map_:
-                self.map_[key] = []
-            self.map_[key].append(value)
+            if key not in self.mapped_groups:
+                self.mapped_groups[key] = []
+            self.mapped_groups[key].append(value)
 
-    def get_map_value(self, key: str) -> list:
-        return self.map_[key]
+    def get_data_for_key_in_map(self, key: str) -> list:
+        return self.mapped_groups[key]
 
-    @property
     def keys(self) -> list:
-        return list(self.map_.keys())
+        return list(self.mapped_groups.keys())
+
+    def add_data_from_other_sources_to_map(self, key: str, value: list):
+        if key in self.mapped_groups:
+            self.mapped_groups[key].extend(value)
+            return
+
+        self.mapped_groups[key] = value
 
 
 class Reducer(FunctionGenerators):
@@ -52,25 +58,9 @@ class Reducer(FunctionGenerators):
         self, reduce_function_as_a_string: str, key: str, values: list
     ) -> None:
         self.reduced_data[key] = reduce(
-            self.convert_string_to_function(
-                reduce_function_as_a_string, function_name="ReduceFunction"
-            ),
+            self.convert_string_to_function(reduce_function_as_a_string),
             values,
         )
 
     def get_reduced_data(self, key):
         return self.reduced_data[key]
-
-
-# if __name__ == '__main__':
-#     map_function = """def MapFunction(row): return row.item_type, row.quantity
-#     """
-#     reduce_function = """def ReduceFunction(a, b): return a+b"""
-#     mas = MapAndShuffle('random_data')
-#     red = Reducer()
-#     mas.map_function_on_data(map_function_as_string=map_function)
-#     print(mas.get_map_value('orange'))
-#     print(mas.keys)
-#     print(sum(mas.get_map_value('orange')))
-#     red.reduced_function_on_data(reduce_function, "orange", mas.get_map_value('orange'))
-#     print(red.get_reduced_data("orange"))
