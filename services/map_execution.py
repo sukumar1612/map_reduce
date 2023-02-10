@@ -22,11 +22,13 @@ class FunctionGenerators:
 
 class MapAndShuffle(FunctionGenerators):
     def __init__(self, filename: str):
-        self.csv = pd.read_csv(f'{filename}.csv').to_dict('records')
+        self.csv = pd.read_csv(f"{filename}.csv").to_dict("records")
         self.map_ = {}
 
     def map_function_on_data(self, map_function_as_string: str) -> None:
-        map_function = self.convert_string_to_function(map_function_as_string, function_name="MapFunction")
+        map_function = self.convert_string_to_function(
+            map_function_as_string, function_name="MapFunction"
+        )
         self.map_ = {}
         for data in self.csv:
             key, value = map_function(self.convert_dict_to_object(data))
@@ -46,10 +48,14 @@ class Reducer(FunctionGenerators):
     def __init__(self):
         self.reduced_data = {}
 
-    def reduced_function_on_data(self, reduce_function_as_a_string: str, key: str, values: list) -> None:
+    def reduced_function_on_data(
+        self, reduce_function_as_a_string: str, key: str, values: list
+    ) -> None:
         self.reduced_data[key] = reduce(
-            self.convert_string_to_function(reduce_function_as_a_string, function_name="ReduceFunction"),
-            values
+            self.convert_string_to_function(
+                reduce_function_as_a_string, function_name="ReduceFunction"
+            ),
+            values,
         )
 
     def get_reduced_data(self, key):
