@@ -3,7 +3,7 @@ from typing import List
 
 import pandas as pd
 
-from exceptions import InvalidSplitSize
+from services.exceptions import InvalidSplitSize
 from services.models import Task
 
 
