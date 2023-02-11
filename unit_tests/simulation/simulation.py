@@ -44,7 +44,7 @@ if __name__ == "__main__":
     pprint.pprint(task.dict())
     pprint.pprint([task.dict() for task in tasks])
     workers = [
-        worker_factory(task=task, node_id=task_number)
+        worker_factory(task=task)
         for task_number, task in enumerate(tasks)
     ]
     for worker in workers:

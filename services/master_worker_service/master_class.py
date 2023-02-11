@@ -4,7 +4,7 @@ from typing import List
 import pandas as pd
 
 from services.exceptions import InvalidSplitSize
-from services.models import Task
+from services.models import Task, WorkerTask
 
 
 class MasterNode:
@@ -29,11 +29,11 @@ class MasterNode:
         if split_size <= 0:
             raise InvalidSplitSize
         splits = [
-            self._data[split - split_size : split]
+            self._data[split - split_size: split]
             if split != split_size * self._number_of_worker_nodes
             else self._data[
-                split_size * self._number_of_worker_nodes - split_size : len(self._data)
-            ]
+                 split_size * self._number_of_worker_nodes - split_size: len(self._data)
+                 ]
             for split in range(0, len(self._data) + 1, split_size)
         ]
         while len(splits) > self._number_of_worker_nodes + 1:
@@ -51,11 +51,12 @@ class MasterNode:
     def create_tasks_for_all_worker_nodes(self, task: Task) -> List[Task]:
         result = []
         for index, file in enumerate(self._temporary_files_list):
-            worker_node_task = Task(
+            worker_node_task = WorkerTask(
                 job_id=task.job_id,
                 file_name=file.name,
                 map_function=task.map_function,
                 reduce_function=task.reduce_function,
+                node_id=index
             )
             self._map_of_task_assigned_to_worker_node[index] = worker_node_task
             result.append(worker_node_task)
@@ -68,7 +69,7 @@ class MasterNode:
         for node, key in enumerate(list(self._distinct_map_keys)):
             self._map_of_reduce_function_to_worker[
                 node % self._number_of_worker_nodes
-            ].append(key)
+                ].append(key)
 
     def get_list_of_reduce_keys(self, node_id: int) -> list:
         return self._map_of_reduce_function_to_worker[node_id]
@@ -83,10 +84,10 @@ class MasterNode:
 
 
 def master_factory(
-    task: Task,
-    data_file_name: str,
-    number_of_worker_nodes: int,
-    master_class=MasterNode,
+        task: Task,
+        data_file_name: str,
+        number_of_worker_nodes: int,
+        master_class=MasterNode,
 ):
     dataframe = pd.read_csv(data_file_name)
     return master_class(
