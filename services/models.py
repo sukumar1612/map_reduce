@@ -1,7 +1,7 @@
 import base64
 import binascii
 import os
-from typing import Union, Optional
+from typing import Optional, Union
 
 from pydantic import BaseModel
 
@@ -34,7 +34,7 @@ def serialize_file_model(file: FileModel) -> dict:
 
 
 def deserialize_file_model(file: dict) -> FileModel:
-    file["chunk"] = base64.b64decode(file["chunk"].encode('ascii'))
+    file["chunk"] = base64.b64decode(file["chunk"].encode("ascii"))
     print(file)
     return FileModel.parse_obj(file)
 
@@ -48,6 +48,6 @@ def serialize_task(task: Task) -> dict:
 
 def deserialize_task(task: dict, task_model=Task) -> Union[Task, WorkerTask]:
     print(task)
-    task['map_function'] = base64.b64decode(task['map_function'].encode('ascii'))
-    task['reduce_function'] = base64.b64decode(task['reduce_function'].encode('ascii'))
+    task["map_function"] = base64.b64decode(task["map_function"].encode("ascii"))
+    task["reduce_function"] = base64.b64decode(task["reduce_function"].encode("ascii"))
     return task_model.parse_obj(task)

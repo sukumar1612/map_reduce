@@ -43,10 +43,7 @@ if __name__ == "__main__":
     """ send tasks to each worker Node """
     pprint.pprint(task.dict())
     pprint.pprint([task.dict() for task in tasks])
-    workers = [
-        worker_factory(task=task)
-        for task_number, task in enumerate(tasks)
-    ]
+    workers = [worker_factory(task=task) for task_number, task in enumerate(tasks)]
     for worker in workers:
         worker.perform_mapping()
 

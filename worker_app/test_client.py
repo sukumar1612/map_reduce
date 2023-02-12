@@ -2,14 +2,11 @@ import asyncio
 
 import dill
 import websockets
-from services.models import (
-    FileModel,
-    WebSocketMessage,
-    WorkerTask,
-    serialize_file_model,
-    serialize_task,
-)
-from unit_tests.simulation.map_and_reduce_functions import MapFunction, ReduceFunction
+
+from services.models import (FileModel, WebSocketMessage, WorkerTask,
+                             serialize_file_model, serialize_task)
+from unit_tests.simulation.map_and_reduce_functions import (MapFunction,
+                                                            ReduceFunction)
 
 CHUNK_SIZE = 1024
 
@@ -68,10 +65,22 @@ async def test_file_streaming_new(websocket):
         print("Done")
 
 
+async def test_perform_mapping_and_get_distinct_keys(websocket):
+    await websocket.send(
+        WebSocketMessage(
+            event="distinct_keys",
+            body={},
+        ).json()
+    )
+    response = await websocket.recv()
+    print(response)
+
+
 async def all_tests():
     async with websockets.connect("ws://localhost:8765", timeout=40) as websocket:
         await test_add_new_task(websocket)
         await test_file_streaming_new(websocket)
+        await test_perform_mapping_and_get_distinct_keys(websocket)
 
 
 if __name__ == "__main__":
