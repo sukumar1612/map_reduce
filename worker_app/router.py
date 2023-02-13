@@ -28,6 +28,11 @@ async def build_csv_file_from_chunks_handler(websocket, message_body: dict):
 
 
 @app.add_route(event="distinct_keys")
-async def get_distinct_keys_from_worker_to_master(websocket, message_body: dict):
+async def get_distinct_keys_from_worker_to_master(websocket, _message_body: dict):
     distinct_keys = WorkerInterface.perform_mapping_and_return_distinct_keys()
     await websocket.send(json.dumps({"distinct_keys": distinct_keys}))
+
+
+@app.add_route(event="assign_reduce_keys")
+async def assign_worker_node_with_reduce_keys(websocket, _message_body: dict):
+    pass

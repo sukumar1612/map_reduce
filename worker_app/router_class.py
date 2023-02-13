@@ -1,5 +1,8 @@
+import asyncio
 import json
 from typing import Callable, Dict, Union
+
+import websockets
 
 from services.models import WebSocketMessage
 
@@ -24,8 +27,15 @@ class Router:
     def add_routes_from_other_routers(self, other_router):
         self.routes.update(other_router.routes)
 
-    async def handler(self, websocket):
+    async def message_parser(self, websocket):
         async for message in websocket:
             deserialized_message = WebSocketMessage.parse_obj(json.loads(message))
             route_handler = self.get_route_handler(event=deserialized_message.event)
             await route_handler(websocket, deserialized_message.body)
+
+    async def handler(self, host: str, port: int):
+        async with websockets.serve(self.message_parser, host, port):
+            await asyncio.Future()
+
+    def run_app(self, host: str, port: int):
+        asyncio.run(self.handler(host, port))

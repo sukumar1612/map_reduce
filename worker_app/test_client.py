@@ -8,7 +8,7 @@ from services.models import (FileModel, WebSocketMessage, WorkerTask,
 from unit_tests.simulation.map_and_reduce_functions import (MapFunction,
                                                             ReduceFunction)
 
-CHUNK_SIZE = 1024
+CHUNK_SIZE = 1024 * 100
 
 
 async def test_add_new_task(websocket):
@@ -26,7 +26,7 @@ async def test_add_new_task(websocket):
 
 
 def file_chunking():
-    file = open("../unit_tests/simulation/random_data.csv", "rb")
+    file = open("../unit_tests/simulation/random_data_1.csv", "rb")
     chunks = []
     temp_chunk = file.read(CHUNK_SIZE)
     while temp_chunk:
