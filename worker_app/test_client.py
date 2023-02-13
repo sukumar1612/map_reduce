@@ -15,7 +15,6 @@ TEST_FILE = "random_data"
 
 async def test_add_new_task(websocket):
     task = WorkerTask(
-        file_name="random_data.csv",
         map_function=dill.dumps(MapFunction),
         reduce_function=dill.dumps(ReduceFunction),
         node_id=1,
@@ -99,5 +98,19 @@ async def all_tests():
         await assign_key_for_reduce(websocket)
 
 
+async def test_initialization_sequence(websocket):
+    await websocket.send(
+        WebSocketMessage(
+            event="initialization_sequence",
+            body={},
+        ).json()
+    )
+
+
+async def master_tests():
+    async with websockets.connect("ws://localhost:5000", timeout=40) as websocket:
+        await test_initialization_sequence(websocket)
+
+
 if __name__ == "__main__":
-    asyncio.run(all_tests())
+    asyncio.run(master_tests())

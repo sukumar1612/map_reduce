@@ -7,6 +7,37 @@ from services.exceptions import InvalidSplitSize
 from services.models import Task, WorkerTask
 
 
+class MasterNodeNew:
+    def __init__(self, task: Task, number_of_worker_nodes: int):
+        self.task = task
+        self.number_of_worker_nodes = number_of_worker_nodes
+        self.distinct_map_keys = set()
+        self.map_of_reduce_function_to_worker = {
+            i: [] for i in range(0, number_of_worker_nodes)
+        }
+
+    def create_tasks_for_all_worker_nodes(self, task) -> List[WorkerTask]:
+        result = []
+        for index in range(self.number_of_worker_nodes):
+            worker_node_task = WorkerTask(
+                job_id=task.job_id,
+                map_function=task.map_function,
+                reduce_function=task.reduce_function,
+                node_id=index,
+            )
+            result.append(worker_node_task)
+        return result
+
+    def insert_distinct_keys_from_each_worker(self, distinct_keys: list):
+        self.distinct_map_keys = self.distinct_map_keys.union(set(distinct_keys))
+
+    def assign_reduce_key_to_workers_round_robin(self):
+        for node, key in enumerate(list(self.distinct_map_keys)):
+            self.map_of_reduce_function_to_worker[
+                node % self.number_of_worker_nodes
+            ].append(key)
+
+
 class MasterNode:
     def __init__(self, job_id: str, data: pd.DataFrame, number_of_worker_nodes: int):
         self._temporary_files_list = []
@@ -53,7 +84,6 @@ class MasterNode:
         for index, file in enumerate(self._temporary_files_list):
             worker_node_task = WorkerTask(
                 job_id=task.job_id,
-                file_name=file.name,
                 map_function=task.map_function,
                 reduce_function=task.reduce_function,
                 node_id=index,

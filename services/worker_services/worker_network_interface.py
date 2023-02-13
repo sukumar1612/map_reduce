@@ -9,21 +9,20 @@ from services.models import ReduceKeyWithIP, WebSocketMessage, WorkerTask
 from services.worker_services.worker_class import WorkerNode
 
 
-class WorkerInterface:
-    CURRENT_TASK: Union[WorkerTask, None] = None
+class WorkerAPIInterface:
     CSV_FILE = None
     CURRENT_JOB: Union[WorkerNode, None] = None
     OTHER_WORKER_NODE_IP: Union[List[str], None] = None
-    LOG = log_factory(__name__, file_name="../logs/worker.log")
+    LOG = None
 
     @classmethod
     def clear_all_prev_class_values(cls):
-        cls.CURRENT_TASK = None
         if cls.CSV_FILE is not None:
             cls.CSV_FILE.close()
         cls.CSV_FILE = None
         cls.CURRENT_JOB = None
         cls.OTHER_WORKER_NODE_IP = None
+        cls.LOG = None
 
     @classmethod
     def build_csv_file_from_chunks(cls, chunk: bytes):
@@ -33,14 +32,14 @@ class WorkerInterface:
 
     @classmethod
     def add_new_task(cls, task: WorkerTask) -> None:
-        cls.CURRENT_TASK = task
-        cls.CURRENT_TASK.file_name = cls.CSV_FILE.name
-        cls.LOG.info(f"app : add new task -> {cls.CURRENT_TASK.dict()}")
+        cls.LOG = log_factory(__name__, file_name=f"../logs/worker_{task.node_id}.log")
+        cls.LOG.info(f"app : add new task -> {task}")
+        task.file_name = cls.CSV_FILE.name
+        cls.CURRENT_JOB = worker_factory(task=task)
+        cls.LOG.info(f"app : add new task -> {task}")
 
     @classmethod
     def perform_mapping_and_return_distinct_keys(cls) -> list:
-        if cls.CURRENT_JOB is None:
-            cls.CURRENT_JOB = worker_factory(task=cls.CURRENT_TASK)
         cls.CURRENT_JOB.perform_mapping()
         cls.LOG.info(
             f"app : distinct keys list -> {cls.CURRENT_JOB.get_list_of_distinct_keys()}"

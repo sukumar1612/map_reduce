@@ -8,8 +8,9 @@ from services.models import WebSocketMessage
 
 
 class Router:
-    def __init__(self):
+    def __init__(self, node_type="master"):
         self.routes: Dict[str, Callable] = {}
+        self.node_type = node_type
 
     def add_route(self, event: str) -> Callable:
         def decorator(route_handler):
@@ -37,5 +38,21 @@ class Router:
         async with websockets.serve(self.message_parser, host, port):
             await asyncio.Future()
 
+    async def worker_initialization_sequence_worker(self, host: str, port: int):
+        if self.node_type == "worker":
+            async with websockets.connect(
+                "ws://localhost:5000", timeout=40
+            ) as websocket:
+                await websocket.send(
+                    WebSocketMessage(
+                        event="add_worker_node",
+                        body={"ip": f"ws://{host}:{port}"},
+                    ).json()
+                )
+                result = await websocket.recv()
+                if result != "ACK":
+                    raise Exception("could not connect to master server")
+
     def run_app(self, host: str, port: int):
+        asyncio.run(self.worker_initialization_sequence_worker(host, port))
         asyncio.run(self.handler(host, port))

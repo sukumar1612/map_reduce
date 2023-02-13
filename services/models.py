@@ -10,7 +10,7 @@ from pydantic import BaseModel
 
 class Task(BaseModel):
     job_id: str = binascii.hexlify(os.urandom(32)).decode("utf-8")
-    file_name: str
+    file_name: Optional[str] = None
     map_function: Union[bytes, str]
     reduce_function: Union[bytes, str]
 
