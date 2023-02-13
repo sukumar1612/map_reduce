@@ -1,8 +1,6 @@
-import pandas as pd
-
 from services.map_reduce_service.mapper_class import MapAndShuffle
 from services.map_reduce_service.reducer_class import Reducer
-from services.models import Task, WorkerTask
+from services.models import WorkerTask
 
 
 class WorkerNode:
@@ -50,9 +48,3 @@ class WorkerNode:
 
     def get_reduced_result(self) -> dict:
         return self.__reducer_class.get_reduced_data_all()
-
-
-def worker_factory(task: WorkerTask) -> WorkerNode:
-    mapper_class = MapAndShuffle(pd.read_csv(task.file_name).to_dict("records"))
-    reducer_class = Reducer()
-    return WorkerNode(mapper_class, reducer_class, task)

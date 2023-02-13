@@ -81,17 +81,3 @@ class MasterNode:
         for temporary_file in self._temporary_files_list:
             temporary_file.close()
         return self._final_result
-
-
-def master_factory(
-    task: Task,
-    data_file_name: str,
-    number_of_worker_nodes: int,
-    master_class=MasterNode,
-):
-    dataframe = pd.read_csv(data_file_name)
-    return master_class(
-        job_id=task.job_id,
-        data=dataframe,
-        number_of_worker_nodes=number_of_worker_nodes,
-    )

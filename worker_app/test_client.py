@@ -1,4 +1,5 @@
 import asyncio
+import json
 
 import dill
 import websockets
@@ -9,6 +10,7 @@ from unit_tests.simulation.map_and_reduce_functions import (MapFunction,
                                                             ReduceFunction)
 
 CHUNK_SIZE = 1024 * 100
+TEST_FILE = "random_data"
 
 
 async def test_add_new_task(websocket):
@@ -26,7 +28,7 @@ async def test_add_new_task(websocket):
 
 
 def file_chunking():
-    file = open("../unit_tests/simulation/random_data_1.csv", "rb")
+    file = open(f"../unit_tests/simulation/{TEST_FILE}.csv", "rb")
     chunks = []
     temp_chunk = file.read(CHUNK_SIZE)
     while temp_chunk:
@@ -76,11 +78,25 @@ async def test_perform_mapping_and_get_distinct_keys(websocket):
     print(response)
 
 
+async def assign_key_for_reduce(websocket):
+    await websocket.send(
+        WebSocketMessage(
+            event="assign_reduce_keys_and_shuffle",
+            body={
+                "key_list": ["apple"],
+                "other_worker_node_ip": ["ws://localhost:8765", "ws://localhost:8765"],
+            },
+        ).json()
+    )
+    print(json.loads(await websocket.recv())["apple"] // 4)
+
+
 async def all_tests():
     async with websockets.connect("ws://localhost:8765", timeout=40) as websocket:
-        await test_add_new_task(websocket)
         await test_file_streaming_new(websocket)
+        await test_add_new_task(websocket)
         await test_perform_mapping_and_get_distinct_keys(websocket)
+        await assign_key_for_reduce(websocket)
 
 
 if __name__ == "__main__":

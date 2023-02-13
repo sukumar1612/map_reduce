@@ -3,10 +3,8 @@ import pprint
 import dill
 import pandas as pd
 
-from services.master_worker_service.master_class import (MasterNode,
-                                                         master_factory)
-from services.master_worker_service.worker_class import (WorkerNode,
-                                                         worker_factory)
+from services.factory import master_factory, worker_factory
+from services.master_services.master_class import MasterNode
 from services.models import Task
 from unit_tests.simulation.map_and_reduce_functions import (MapFunction,
                                                             ReduceFunction)

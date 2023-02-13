@@ -1,9 +1,11 @@
 import base64
 import binascii
 import os
-from typing import Optional, Union
+from typing import List, Optional, Union
 
 from pydantic import BaseModel
+
+""" common to all services """
 
 
 class Task(BaseModel):
@@ -13,19 +15,27 @@ class Task(BaseModel):
     reduce_function: Union[bytes, str]
 
 
-class WorkerTask(Task):
-    node_id: int
-
-
 class WebSocketMessage(BaseModel):
     event: str
     body: dict
+
+
+""" specifically meant for worker services """
+
+
+class WorkerTask(Task):
+    node_id: int
 
 
 class FileModel(BaseModel):
     chunk: Union[bytes, str]
     chunk_index: int
     completed: Optional[bool]
+
+
+class ReduceKeyWithIP(BaseModel):
+    key_list: List[str]
+    other_worker_node_ip: List[str]
 
 
 def serialize_file_model(file: FileModel) -> dict:
