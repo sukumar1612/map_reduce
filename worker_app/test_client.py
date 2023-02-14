@@ -2,6 +2,7 @@ import asyncio
 import json
 
 import dill
+import socketio
 import websockets
 
 from services.models import (FileModel, WebSocketMessage, WorkerTask,
@@ -112,5 +113,11 @@ async def master_tests():
         await test_initialization_sequence(websocket)
 
 
+sio = socketio.Client()
+
 if __name__ == "__main__":
-    asyncio.run(master_tests())
+    sio.connect('http://localhost:5000', namespaces=['/client'])
+    # sio.emit('file_initialization', {}, namespace='/client')
+    # sio.emit('perform_map_reduce', {}, namespace='/client')
+    sio.emit('environment', {}, namespace='/client')
+    sio.wait()

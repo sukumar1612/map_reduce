@@ -1,5 +1,7 @@
 import json
+import os
 import tempfile
+from pathlib import Path
 from typing import List, Union
 
 import websockets
@@ -14,6 +16,15 @@ class WorkerAPIInterface:
     CURRENT_JOB: Union[WorkerNode, None] = None
     OTHER_WORKER_NODE_IP: Union[List[str], None] = None
     LOG = None
+    WORKER_NODE_ID: int = None
+
+    @classmethod
+    def get_worker_node_id(cls) -> int:
+        return cls.WORKER_NODE_ID
+
+    @classmethod
+    def set_worker_node_id(cls, _id: int):
+        cls.WORKER_NODE_ID = _id
 
     @classmethod
     def clear_all_prev_class_values(cls):
@@ -32,7 +43,13 @@ class WorkerAPIInterface:
 
     @classmethod
     def add_new_task(cls, task: WorkerTask) -> None:
-        cls.LOG = log_factory(__name__, file_name=f"../logs/worker_{task.node_id}.log")
+        cls.LOG = log_factory(
+            __name__,
+            file_name=os.path.join(
+                Path(os.path.dirname(__file__)).parent.parent,
+                f"logs/worker_{task.node_id}.log",
+            )
+        )
         cls.LOG.info(f"app : add new task -> {task}")
         task.file_name = cls.CSV_FILE.name
         cls.CURRENT_JOB = worker_factory(task=task)

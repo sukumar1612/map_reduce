@@ -21,7 +21,7 @@ class WorkerNode:
 
     def perform_mapping(self) -> None:
         self.__mapper_class.map_function_on_data(self.__task)
-        print(self.__mapper_class.get_map())
+        # print(self.__mapper_class.get_map())
 
     def get_list_of_distinct_keys(self) -> list:
         return self.__mapper_class.keys()

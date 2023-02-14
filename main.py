@@ -1,10 +1,13 @@
 import sys
 
-from master_app.index import main_app_master
-from worker_app.index import main_app_worker
+import eventlet
+
+from master_app.router import app
+from worker_app.router import sio_worker
 
 if __name__ == "__main__":
     if sys.argv[1] == "-master":
-        main_app_master.run_app("localhost", port=int(sys.argv[2]))
+        eventlet.wsgi.server(eventlet.listen(('', 5000)), app)
     else:
-        main_app_worker.run_app("localhost", port=int(sys.argv[2]))
+        sio_worker.connect('http://localhost:5000')
+        sio_worker.wait()
