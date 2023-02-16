@@ -17,5 +17,5 @@ build/
 .idea/
 docs/_build/
 .vscode
-/unit_tests/simulation/random_data_1.csv
+*.csv
 *.log
