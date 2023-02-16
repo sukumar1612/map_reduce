@@ -70,7 +70,6 @@ class WorkerAPIInterface:
     @classmethod
     def perform_reduce_and_get_final_results(cls) -> dict:
         cls.MAP_REDUCE_HANDLER.reduce_data(task=cls.CURRENT_TASK)
-        cls.prepare_for_next_task()
         return cls.MAP_REDUCE_HANDLER.get_reduced_groups()
 
     @classmethod

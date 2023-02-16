@@ -53,7 +53,7 @@ class MapperAndReducer:
         return self.groups_after_mapping
 
     def get_reduced_groups(self) -> dict:
-        return self.groups_after_mapping
+        return self.groups_after_reducing
 
     def fetch_distinct_keys(self) -> list:
         return list(self.groups_after_mapping.keys())
