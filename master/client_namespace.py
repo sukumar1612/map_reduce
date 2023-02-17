@@ -22,9 +22,6 @@ class ClientConnectionNamespace(socketio.Namespace):
             socket_connection=self,
         )
 
-    def on_assign_reduce_keys_and_perform_reduce(self, sid: str, message_body: dict):
-        MasterAPIInterface.assign_reduce_keys(socket_connection=self)
-
     def on_reset_state(self, sid: str, message_body: dict):
         print("__master reset__")
         MasterAPIInterface.reset_state()

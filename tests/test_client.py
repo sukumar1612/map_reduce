@@ -32,5 +32,4 @@ if __name__ == "__main__":
     time.sleep(10)
     print("__reset_state__")
     sio.emit("reset_state", {}, namespace="/client")
-    # sio.emit('assign_reduce_keys_and_perform_reduce', {}, namespace='/client')
     sio.wait()
