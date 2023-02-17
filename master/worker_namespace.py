@@ -28,6 +28,15 @@ class WorkerNamespace(socketio.Namespace):
         MasterAPIInterface.insert_map_result_data(map_keys=message_body["map_keys"])
         print(f"___number of map result sent: {self.COUNT_OF_MAP_RESULTS_RECEIVED}___")
         print(f"map results: {message_body['map_keys']}")
+        if (
+            self.COUNT_OF_MAP_RESULTS_RECEIVED
+            == MasterAPIInterface.NUMBER_OF_NODES_CURRENTLY_USED_IN_TASK
+        ):
+            MasterAPIInterface.assign_reduce_keys(socket_connection=self)
 
     def on_get_final_result(self, sid, message_body: dict):
         print(message_body)
+        self.emit("prepare_for_next_task", {}, room=sid, namespace="/worker")
+        MasterAPIInterface.prepare_for_next_task()
+        self.COUNT_OF_INITIALIZED_NODES = 0
+        self.COUNT_OF_MAP_RESULTS_RECEIVED = 0

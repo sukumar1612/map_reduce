@@ -20,14 +20,13 @@ class WorkerAPIInterface:
     @classmethod
     def reset_state(cls):
         cls.RECORD_FILE.close()
-        cls.WORKER_ID = None
+        cls.RECORD_FILE = None
         cls.MAP_REDUCE_HANDLER = None
         cls.CURRENT_TASK = None
 
     @classmethod
     def prepare_for_next_task(cls):
         cls.MAP_REDUCE_HANDLER.reset_state()
-        cls.WORKER_ID = None
         cls.CURRENT_TASK = None
 
     @classmethod

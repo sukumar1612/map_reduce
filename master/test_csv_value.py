@@ -1,7 +1,6 @@
 import pprint
 
 import dill
-import pandas as pd
 
 from services.models import Task
 from services.worker.mapper_and_reducer import mapper_and_reducer_factory

@@ -20,11 +20,12 @@ class MapperAndReducer:
 
     def map_data(self, task: Task) -> None:
         mapper_function = dill.loads(task.mapper_function)
-        for data in self.records:
-            key, value = mapper_function(DictionaryToObject(**data))
-            if key not in self.groups_after_mapping:
-                self.groups_after_mapping[key] = []
-            self.groups_after_mapping[key].append(value)
+        self.groups_after_mapping = mapper_function(self.records)
+        # for data in self.records:
+        #     key, value = mapper_function(DictionaryToObject(**data))
+        #     if key not in self.groups_after_mapping:
+        #         self.groups_after_mapping[key] = []
+        #     self.groups_after_mapping[key].append(value)
 
     def reduce_data(self, task: Task) -> None:
         reducer_function = dill.loads(task.reducer_function)

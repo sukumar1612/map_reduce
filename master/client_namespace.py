@@ -24,3 +24,14 @@ class ClientConnectionNamespace(socketio.Namespace):
 
     def on_assign_reduce_keys_and_perform_reduce(self, sid: str, message_body: dict):
         MasterAPIInterface.assign_reduce_keys(socket_connection=self)
+
+    def on_reset_state(self, sid: str, message_body: dict):
+        print("__master reset__")
+        MasterAPIInterface.reset_state()
+        for (
+            node_id,
+            node_meta_data,
+        ) in MasterAPIInterface.CONNECTED_NODES_METADATA.items():
+            self.emit(
+                "reset_state", {}, room=node_meta_data["sid"], namespace="/worker"
+            )

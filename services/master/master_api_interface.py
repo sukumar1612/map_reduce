@@ -23,8 +23,8 @@ class MasterAPIInterface:
         cls.RECORD_FILE.close()
         cls.CURRENT_TASK = None
         cls.MASTER_NODE_HANDLER = None
-        cls.CONNECTED_NODES = 0
-        cls.CONNECTED_NODES_METADATA = {}
+        # cls.CONNECTED_NODES = 0
+        # cls.CONNECTED_NODES_METADATA = {}
         cls.NUMBER_OF_NODES_CURRENTLY_USED_IN_TASK = 0
 
     @classmethod

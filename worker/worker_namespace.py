@@ -45,3 +45,10 @@ class WorkerNamespace(socketio.ClientNamespace):
             WorkerAPIInterface.perform_reduce_and_get_final_results(),
             namespace="/worker",
         )
+
+    def on_prepare_for_next_task(self, message_body: dict):
+        WorkerAPIInterface.prepare_for_next_task()
+
+    def on_reset_state(self, message_body: dict):
+        print(f"reset worker node : {WorkerAPIInterface.WORKER_ID}")
+        WorkerAPIInterface.reset_state()
