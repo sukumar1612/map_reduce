@@ -10,4 +10,4 @@ def MapFunction(records: list):
 
 
 def ReduceFunction(values: list):
-    return sum(values)
+    return sum(values) / len(values)

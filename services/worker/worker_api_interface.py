@@ -27,6 +27,7 @@ class WorkerAPIInterface:
     @classmethod
     def prepare_for_next_task(cls):
         cls.MAP_REDUCE_HANDLER.reset_state()
+        cls.MAP_REDUCE_HANDLER = None
         cls.CURRENT_TASK = None
 
     @classmethod

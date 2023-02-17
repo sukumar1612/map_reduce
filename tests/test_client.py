@@ -1,4 +1,5 @@
 import json
+import marshal
 import time
 
 import dill
@@ -20,8 +21,8 @@ if __name__ == "__main__":
             "task": json.dumps(
                 serialize_task(
                     Task(
-                        mapper_function=dill.dumps(MapFunction),
-                        reducer_function=dill.dumps(ReduceFunction),
+                        mapper_function=marshal.dumps(MapFunction.__code__),
+                        reducer_function=marshal.dumps(ReduceFunction.__code__),
                     )
                 )
             )

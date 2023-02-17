@@ -1,4 +1,6 @@
 import json
+import os
+from pathlib import Path
 
 import socketio
 
@@ -11,7 +13,11 @@ class ClientConnectionNamespace(socketio.Namespace):
         print("__client connected__")
 
     def on_file_initialization(self, sid, message_body: dict):
-        MasterAPIInterface.RECORD_FILE = open("random_data_1.csv")
+        MasterAPIInterface.RECORD_FILE = open(
+            os.path.join(
+                Path(os.path.dirname(__file__)).parent, "master/random_data_1.csv"
+            )
+        )
         MasterAPIInterface.initialize_all_worker_nodes_with_file_data(
             socket_connection=self
         )

@@ -9,6 +9,3 @@ app = socketio.WSGIApp(sio_master)
 
 sio_master.register_namespace(ClientConnectionNamespace("/client"))
 sio_master.register_namespace(WorkerNamespace("/worker"))
-
-if __name__ == "__main__":
-    eventlet.wsgi.server(eventlet.listen(("", 5000)), app)

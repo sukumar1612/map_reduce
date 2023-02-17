@@ -1,3 +1,5 @@
+import marshal
+import types
 from typing import Any, Dict, List, Union
 
 import dill
@@ -19,7 +21,9 @@ class MapperAndReducer:
         self.reduce_keys: list = []
 
     def map_data(self, task: Task) -> None:
-        mapper_function = dill.loads(task.mapper_function)
+        mapper_function = types.FunctionType(
+            marshal.loads(task.mapper_function), globals(), "MapFunc"
+        )
         self.groups_after_mapping = mapper_function(self.records)
         # for data in self.records:
         #     key, value = mapper_function(DictionaryToObject(**data))
@@ -28,7 +32,9 @@ class MapperAndReducer:
         #     self.groups_after_mapping[key].append(value)
 
     def reduce_data(self, task: Task) -> None:
-        reducer_function = dill.loads(task.reducer_function)
+        reducer_function = types.FunctionType(
+            marshal.loads(task.reducer_function), globals(), "ReduceFunc"
+        )
         for key in self.reduce_keys:
             self.groups_after_reducing[key] = reducer_function(
                 self.groups_after_mapping[key]
