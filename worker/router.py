@@ -21,9 +21,9 @@ def worker_server_thread(host: str):
     eventlet.wsgi.server(eventlet.listen((host, 7000)), app)
 
 
-def worker_process(host: str):
-    t1 = threading.Thread(target=worker_client_thread, args=(host,))
-    t2 = threading.Thread(target=worker_server_thread, args=(host,))
+def worker_process(p2p_server_host: str, master_server_host: str):
+    t1 = threading.Thread(target=worker_client_thread, args=(master_server_host,))
+    t2 = threading.Thread(target=worker_server_thread, args=(p2p_server_host,))
     t1.daemon = True
     t2.daemon = True
     t1.start()
