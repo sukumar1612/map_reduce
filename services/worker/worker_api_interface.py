@@ -42,6 +42,7 @@ class WorkerAPIInterface:
     def add_new_task(cls, task: Task) -> None:
         cls.CURRENT_TASK = task
         if cls.MAP_REDUCE_HANDLER is None:
+            cls.RECORD_FILE.seek(0)
             cls.MAP_REDUCE_HANDLER = mapper_and_reducer_factory(
                 file_name=cls.RECORD_FILE.name
             )

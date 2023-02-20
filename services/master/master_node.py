@@ -20,17 +20,21 @@ class MasterNode:
     @staticmethod
     def create_chunks_of_dataframe(
         initialization_data: pd.DataFrame, worker_node_count: int
-    ) -> List[pd.DataFrame]:
+    ) -> List[List[dict]]:
         split_size = int(len(initialization_data) / worker_node_count)
+        initialization_data_dictionary_list = initialization_data.to_dict("records")
         if split_size <= 0:
             raise InvalidSplitSize
         splits = [
-            initialization_data[split - split_size : split]
+            initialization_data_dictionary_list[max(split - split_size, 0) : split]
             if split != split_size * worker_node_count
-            else initialization_data[
-                split_size * worker_node_count - split_size : len(initialization_data)
+            else initialization_data_dictionary_list[
+                split_size * worker_node_count
+                - split_size : len(initialization_data_dictionary_list)
             ]
-            for split in range(0, len(initialization_data) + 1, split_size)
+            for split in range(
+                0, len(initialization_data_dictionary_list) + 1, split_size
+            )
         ]
         while len(splits) > worker_node_count + 1:
             splits.pop()
@@ -38,10 +42,12 @@ class MasterNode:
 
     def create_dataframe_chunks_as_temporary_file(self, worker_node_count: int) -> list:
         chunks = MasterNode.create_chunks_of_dataframe(self.records, worker_node_count)
+        if not chunks[0]:
+            chunks = chunks[1:]
         list_of_temporary_files = []
-        for index, chunk in enumerate(chunks[1:]):
+        for index, chunk in enumerate(chunks):
             temp = tempfile.NamedTemporaryFile(prefix=f"file_{index}_")
-            chunk.to_csv(temp.name, index=False)
+            pd.DataFrame.from_records(chunk).to_csv(temp.name, index=False)
             list_of_temporary_files.append(temp)
             temp.seek(0)
         return list_of_temporary_files
