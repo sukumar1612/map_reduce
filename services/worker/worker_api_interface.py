@@ -1,3 +1,5 @@
+import base64
+import pickle
 import pprint
 import tempfile
 import threading
@@ -82,11 +84,17 @@ class WorkerAPIInterface:
 
 def connection_thread(api_interface: WorkerAPIInterface, ip: str):
     socket_connection = socketio.Client()
+    file = tempfile.NamedTemporaryFile()
 
     @socket_connection.on("receive_key_value", namespace="/p2p")
     def on_receive_key_value(message_body: dict):
-        api_interface.MAP_REDUCE_HANDLER.extend_map(message_body)
-        socket_connection.disconnect()
+        if message_body["completed"] is True:
+            file.seek(0)
+            api_interface.MAP_REDUCE_HANDLER.extend_map(pickle.load(file))
+            socket_connection.disconnect()
+            file.close()
+        else:
+            file.write(base64.b64decode(message_body["chunk"].encode("ascii")))
 
     socket_connection.connect(ip)
     socket_connection.emit(
