@@ -12,8 +12,9 @@ if __name__ == "__main__":
         worker_process(p2p_server_host=sys.argv[2], master_server_host=sys.argv[3])
 
     # todo
-    # 1. make server asynchronous and make p2p server asynchronous (better performance for IO ops)
-    # 2. add client side server with fastapi + messaging queue for handling tasks ?
-    # 3. make client with typer or something similar
-    # 4. manage dependencies with poetry
-    # 5. switch to python 3.10
+    # 1. make server asynchronous and make p2p server asynchronous (better performance for IO ops) -> done
+    # 2. add client side server with fastapi + messaging queue for handling tasks ? -> priority 4
+    # 3. make client with typer or something similar -> priority 3
+    # 4. manage dependencies with poetry -> last
+    # 5. assign priority to worker client thread rather than p2p server thread -> priority 2
+    # 6. create docker file and orchestrate with kubernetes -> priority -> 1

@@ -1,10 +1,11 @@
+import asyncio
 import base64
 import pickle
 import pprint
 import tempfile
 import threading
 from io import TextIOWrapper
-from typing import Dict, Union
+from typing import Any, Dict, Union
 
 import socketio
 
@@ -58,17 +59,19 @@ class WorkerAPIInterface:
 
     @classmethod
     def shuffle(cls, connected_nodes_ip: Dict[int, str]):
-        connection_threads = []
-        pprint.pprint(connected_nodes_ip)
-        for node_id, ip in connected_nodes_ip.items():
-            # connection_threads.append(
-            #     threading.Thread(target=connection_thread, args=(cls, ip)))
-            # connection_threads[len(connection_threads) - 1].daemon = True
-            # connection_threads[len(connection_threads) - 1].start()
-            connection_thread(cls, ip)
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        asynchronous_function_calls = asyncio.gather(
+            *[
+                loop.create_task(receive_other_node_map_data(cls, ip))
+                for _, ip in connected_nodes_ip.items()
+            ]
+        )
+        connection_threads_output = loop.run_until_complete(asynchronous_function_calls)
+        loop.close()
 
-        # for connection in connection_threads:
-        #     connection.join()
+        for node_id in range(len(connected_nodes_ip.keys())):
+            cls.MAP_REDUCE_HANDLER.extend_map(connection_threads_output[node_id])
 
     @classmethod
     def perform_reduce_and_get_final_results(cls) -> dict:
@@ -83,24 +86,27 @@ class WorkerAPIInterface:
         }
 
 
-def connection_thread(api_interface: WorkerAPIInterface, ip: str):
-    socket_connection = socketio.Client()
+async def receive_other_node_map_data(
+    api_interface: WorkerAPIInterface, ip: str
+) -> Any:
+    socket_connection = socketio.AsyncClient()
     file = tempfile.NamedTemporaryFile()
 
     @socket_connection.on("receive_key_value", namespace="/p2p")
-    def on_receive_key_value(message_body: dict):
+    async def on_receive_key_value(message_body: dict):
         if message_body["completed"] is True:
             file.seek(0)
-            api_interface.MAP_REDUCE_HANDLER.extend_map(pickle.load(file))
-            socket_connection.disconnect()
-            file.close()
+            await socket_connection.disconnect()
         else:
             file.write(base64.b64decode(message_body["chunk"].encode("ascii")))
 
-    socket_connection.connect(ip)
-    socket_connection.emit(
+    await socket_connection.connect(ip)
+    await socket_connection.emit(
         "request_value_for_list_of_keys",
         {"key_list": api_interface.MAP_REDUCE_HANDLER.reduce_keys},
         namespace="/p2p",
     )
-    socket_connection.wait()
+    await socket_connection.wait()
+    constructed_object = pickle.load(file)
+    file.close()
+    return constructed_object
