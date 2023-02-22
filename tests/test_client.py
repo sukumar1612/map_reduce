@@ -11,7 +11,7 @@ from tests.test_map_reduce_functions import MapFunction, ReduceFunction
 sio = socketio.Client()
 
 if __name__ == "__main__":
-    sio.connect("ws://localhost:5000", namespaces=["/client"])
+    sio.connect("ws://10.1.82.79:5000", namespaces=["/client"])
     sio.emit("file_initialization", {}, namespace="/client")
     print("__file initialized__")
     time.sleep(10)
