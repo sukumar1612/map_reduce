@@ -18,6 +18,8 @@ class MasterAPIInterface:
     CONNECTED_NODES_METADATA: dict = {}
     NUMBER_OF_NODES_CURRENTLY_USED_IN_TASK: int = 0
 
+    RESULTS: dict = {}
+
     @classmethod
     def reset_state(cls):
         cls.RECORD_FILE.close()
@@ -48,7 +50,7 @@ class MasterAPIInterface:
         return cls.CONNECTED_NODES - 1
 
     @classmethod
-    def initialize_all_worker_nodes_with_file_data(
+    async def initialize_all_worker_nodes_with_file_data(
         cls, socket_connection: socketio.Namespace
     ):
         cls.NUMBER_OF_NODES_CURRENTLY_USED_IN_TASK = cls.CONNECTED_NODES
@@ -63,13 +65,13 @@ class MasterAPIInterface:
             for file_chunk in cls.MASTER_NODE_HANDLER.file_chunking(
                 temp_file_list[node_id]
             ):
-                socket_connection.emit(
+                await socket_connection.emit(
                     "worker_node_initialization",
                     {"chunk": file_chunk},
                     room=node_meta_data["sid"],
                     namespace="/worker",
                 )
-            socket_connection.emit(
+            await socket_connection.emit(
                 "worker_node_initialization",
                 {"completed": True},
                 room=node_meta_data["sid"],
@@ -78,12 +80,14 @@ class MasterAPIInterface:
             print(f"sent file to node {node_id} successfully")
 
     @classmethod
-    def add_and_distribute_task(cls, task: Task, socket_connection: socketio.Namespace):
+    async def add_and_distribute_task(
+        cls, task: Task, socket_connection: socketio.Namespace
+    ):
         cls.CURRENT_TASK = task
         # broadcast task to all nodes under /worker
         task = json.dumps(serialize_task(cls.CURRENT_TASK))
         for node_id, node_meta_data in cls.CONNECTED_NODES_METADATA.items():
-            socket_connection.emit(
+            await socket_connection.emit(
                 "add_task",
                 {"task": task},
                 room=node_meta_data["sid"],
@@ -96,14 +100,15 @@ class MasterAPIInterface:
         cls.MASTER_NODE_HANDLER.insert_mapped_keys(map_keys)
 
     @classmethod
-    def assign_reduce_keys(cls, socket_connection: socketio.Namespace) -> None:
+    async def assign_reduce_keys(cls, socket_connection: socketio.Namespace) -> int:
         node_reduce_map = (
             cls.MASTER_NODE_HANDLER.assign_reduce_key_to_workers_round_robin(
                 cls.NUMBER_OF_NODES_CURRENTLY_USED_IN_TASK
             )
         )
+        number_of_nodes_assigned_reduce_keys = 0
         for node_id, node_meta_data in cls.CONNECTED_NODES_METADATA.items():
-            socket_connection.emit(
+            await socket_connection.emit(
                 "insert_reduce_keys",
                 {
                     "key_list": node_reduce_map[node_id],
@@ -116,6 +121,8 @@ class MasterAPIInterface:
                 room=node_meta_data["sid"],
                 namespace="/worker",
             )
+            number_of_nodes_assigned_reduce_keys += 1
+        return number_of_nodes_assigned_reduce_keys
 
     @classmethod
     def insert_partial_result(cls, result: dict):

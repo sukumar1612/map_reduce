@@ -3,6 +3,7 @@ import sys
 
 import dotenv
 import eventlet
+import uvicorn
 
 from master.router import app
 from worker.router import worker_process
@@ -11,7 +12,8 @@ dotenv.load_dotenv()
 
 if __name__ == "__main__":
     if sys.argv[1] == "-master":
-        eventlet.wsgi.server(eventlet.listen((os.getenv("MASTER_HOST_IP"), 5000)), app)
+        uvicorn.run(app, host="0.0.0.0", port=5000)
+        # eventlet.wsgi.server(eventlet.listen((os.getenv("MASTER_HOST_IP"), 5000)), app)
     elif sys.argv[1] == "-worker":
         worker_process(
             p2p_server_host=os.getenv("WORKER_HOST_IP"),

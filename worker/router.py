@@ -11,8 +11,10 @@ sio_worker.register_namespace(WorkerNamespace("/worker"))
 
 
 def worker_client_thread(host: str):
-    print(f"http://{host}:5000")
-    sio_worker.connect(f"http://{host}:5000", namespaces=["/worker"])
+    print(f"http://{host}:5000/ws/socket.io/")
+    sio_worker.connect(
+        f"http://{host}:5000/", socketio_path="ws/socket.io", namespaces=["/worker"]
+    )
     sio_worker.wait()
 
 
