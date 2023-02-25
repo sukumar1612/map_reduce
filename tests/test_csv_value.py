@@ -1,15 +1,13 @@
 import marshal
 import pprint
 
-import dill
-
-from services.models import Task
-from services.worker.mapper_and_reducer import mapper_and_reducer_factory
+from common.models import Task
 from tests.test_map_reduce_functions import (MapFunction, MapFunction1,
                                              ReduceFunction, ReduceFunction1)
+from worker.services.mapper_and_reducer import mapper_and_reducer_factory
 
 if __name__ == "__main__":
-    mapper = mapper_and_reducer_factory(file_name="random_data_1.csv")
+    mapper = mapper_and_reducer_factory(file_name="../tests/random_data_1.csv")
     mapper.map_data(
         task=Task(
             mapper_function=marshal.dumps(MapFunction.__code__),
@@ -25,7 +23,7 @@ if __name__ == "__main__":
     )
     pprint.pprint(mapper.groups_after_reducing)
 
-    mapper = mapper_and_reducer_factory(file_name="random_data_1.csv")
+    mapper = mapper_and_reducer_factory(file_name="../tests/random_data_1.csv")
     mapper.map_data(
         task=Task(
             mapper_function=marshal.dumps(MapFunction1.__code__),

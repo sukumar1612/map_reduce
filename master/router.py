@@ -1,27 +1,18 @@
-# import eventlet
-# import socketio
-#
-# from master.client_namespace import ClientConnectionNamespace
-# from master.worker_namespace import WorkerNamespace
-#
-# sio_master = socketio.Server()
-# app = socketio.WSGIApp(sio_master)
-#
-# sio_master.register_namespace(ClientConnectionNamespace("/client"))
-# sio_master.register_namespace(WorkerNamespace("/worker"))
 import socketio
 from fastapi import FastAPI
 
-from master.client_namespace import ClientConnectionNamespace
-from master.worker_namespace import WorkerNamespace
+from master.namespaces.client import ClientConnectionNamespace
+from master.namespaces.worker import WorkerNamespace
+from master.rest_api.fastapi_router import app
 
-app = FastAPI()
+fastapi_app = FastAPI()
 
-_sio = socketio.AsyncServer(async_mode="asgi", cors_allowed_origins="*")
+sio = socketio.AsyncServer(async_mode="asgi", cors_allowed_origins="*")
 
-_sio.register_namespace(ClientConnectionNamespace("/client"))
-_sio.register_namespace(WorkerNamespace("/worker"))
+sio.register_namespace(ClientConnectionNamespace("/client"))
+sio.register_namespace(WorkerNamespace("/worker"))
 
-_app = socketio.ASGIApp(socketio_server=_sio, socketio_path="socket.io")
-
-app.mount("/ws", _app)
+fastapi_app.mount(
+    "/ws", socketio.ASGIApp(socketio_server=sio, socketio_path="socket.io")
+)
+fastapi_app.mount("/rest", app)

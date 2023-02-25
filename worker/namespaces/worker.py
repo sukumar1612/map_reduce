@@ -2,8 +2,8 @@ import json
 
 import socketio
 
-from services.models import deserialize_file_model, deserialize_task
-from services.worker.worker_api_interface import WorkerAPIInterface
+from common.models import deserialize_file_model, deserialize_task
+from worker.services.worker_api_interface import WorkerAPIInterface
 
 
 class WorkerNamespace(socketio.ClientNamespace):

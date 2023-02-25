@@ -1,16 +1,14 @@
 import asyncio
 import base64
 import pickle
-import pprint
 import tempfile
-import threading
 from io import TextIOWrapper
 from typing import Any, Dict, Union
 
 import socketio
 
-from services.models import Task
-from services.worker.mapper_and_reducer import (MapperAndReducer,
+from common.models import Task
+from worker.services.mapper_and_reducer import (MapperAndReducer,
                                                 mapper_and_reducer_factory)
 
 

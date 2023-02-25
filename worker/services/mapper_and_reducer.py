@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Union
 import dill
 import pandas as pd
 
-from services.models import Task
+from common.models import Task
 
 
 class DictionaryToObject:

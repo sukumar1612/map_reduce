@@ -6,10 +6,9 @@ from typing import Union
 
 import socketio
 
-from master.redis_client_wrapper import RedisHandler
-from services.master.master_node import MasterNode, master_node_factory
-from services.models import (Task, deserialize_task, serialize_file_model,
-                             serialize_task)
+from common.models import Task, deserialize_task, serialize_task
+from master.services.master_node_handler import MasterNode, master_node_factory
+from master.services.task_queue import TaskQueueSingleton
 
 
 class MasterAPIInterface:
@@ -25,17 +24,23 @@ class MasterAPIInterface:
     RESULTS: dict = {}
 
     @classmethod
-    def reset_state(cls):
+    async def reset_state(cls, socket_connection: socketio.Namespace):
         cls.RECORD_FILE.close()
         cls.CURRENT_TASK = None
         cls.MASTER_NODE_HANDLER = None
-        # cls.CONNECTED_NODES = 0
-        # cls.CONNECTED_NODES_METADATA = {}
         cls.NUMBER_OF_NODES_CURRENTLY_USED_IN_TASK = 0
         cls.TASK_COMPLETE.set()
 
+        for node_id, node_meta_data in cls.CONNECTED_NODES_METADATA.items():
+            await socket_connection.emit(
+                "reset_state", {}, room=node_meta_data["sid"], namespace="/worker"
+            )
+
     @classmethod
     def prepare_for_next_task(cls):
+        cls.RESULTS[
+            cls.CURRENT_TASK.job_id
+        ] = cls.MASTER_NODE_HANDLER.get_final_reduced_data()
         cls.MASTER_NODE_HANDLER.reset_state()
         cls.CURRENT_TASK = None
         cls.TASK_COMPLETE.set()
@@ -59,6 +64,7 @@ class MasterAPIInterface:
     async def initialize_all_worker_nodes_with_file_data(
         cls, socket_connection: socketio.Namespace
     ):
+        cls.RECORD_FILE.seek(0)
         cls.NUMBER_OF_NODES_CURRENTLY_USED_IN_TASK = cls.CONNECTED_NODES
         if cls.MASTER_NODE_HANDLER is None:
             cls.MASTER_NODE_HANDLER = master_node_factory(cls.RECORD_FILE.name)
@@ -135,13 +141,20 @@ class MasterAPIInterface:
         cls.MASTER_NODE_HANDLER.aggregate_reduced_data(result)
 
     @classmethod
-    async def trigger_task_queue(cls, socker_connection: socketio.Namespace):
-        redis_handler = RedisHandler(host="localhost", pub_sub_channel="task_queue")
-        async for data in redis_handler.subscribe_to_channel():
+    async def trigger_task_queue(cls, socket_connection: socketio.Namespace):
+        async for data in TaskQueueSingleton.dequeue():
             print(data)
             await MasterAPIInterface.add_and_distribute_task(
                 task=deserialize_task(json.loads(data)),
-                socket_connection=socker_connection,
+                socket_connection=socket_connection,
             )
             MasterAPIInterface.TASK_COMPLETE.clear()
             await MasterAPIInterface.TASK_COMPLETE.wait()
+
+    @staticmethod
+    async def add_task(task: str) -> None:
+        await TaskQueueSingleton.enqueue(task)
+
+    @classmethod
+    def fetch_result(cls, job_id: str) -> dict:
+        return MasterAPIInterface.RESULTS.get(job_id)

@@ -3,8 +3,8 @@ import threading
 import eventlet
 import socketio
 
-from worker.p2p_server import app
-from worker.worker_namespace import WorkerNamespace
+from worker.namespaces.p2p_server import app
+from worker.namespaces.worker import WorkerNamespace
 
 sio_worker = socketio.Client()
 sio_worker.register_namespace(WorkerNamespace("/worker"))

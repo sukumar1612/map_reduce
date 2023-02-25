@@ -1,9 +1,8 @@
 import asyncio
-import pprint
 
 import socketio
 
-from services.master.master_api_interface import MasterAPIInterface
+from master.services.master_api_interface import MasterAPIInterface
 
 LOCK = asyncio.Lock()
 
@@ -15,8 +14,6 @@ class WorkerNamespace(socketio.AsyncNamespace):
 
     async def on_connect(self, sid: str, environ: dict):
         print(f'http://{environ.get("asgi.scope").get("client")[0]}:7000')
-        # print(f"------{await self.server.session()}------")
-        # pprint.pprint(self.session(sid=sid, namespace='/worker'))
         node_id = MasterAPIInterface.add_new_node(
             node_sid=sid,
             node_ip=f'http://{environ.get("asgi.scope").get("client")[0]}:7000',
@@ -54,10 +51,8 @@ class WorkerNamespace(socketio.AsyncNamespace):
         MasterAPIInterface.insert_partial_result(message_body)
         await self.emit("prepare_for_next_task", {}, room=sid, namespace="/worker")
         self.COUNT_OF_REDUCE_RESULTS_RECEIVED -= 1
+
         if self.COUNT_OF_REDUCE_RESULTS_RECEIVED <= 0:
-            MasterAPIInterface.RESULTS[
-                MasterAPIInterface.CURRENT_TASK.job_id
-            ] = MasterAPIInterface.MASTER_NODE_HANDLER.get_final_reduced_data()
             MasterAPIInterface.prepare_for_next_task()
             self.COUNT_OF_INITIALIZED_NODES = 0
             self.COUNT_OF_MAP_RESULTS_RECEIVED = 0

@@ -4,7 +4,7 @@ import tempfile
 
 import socketio
 
-from services.worker.worker_api_interface import WorkerAPIInterface
+from worker.services.worker_api_interface import WorkerAPIInterface
 
 p2p_server = socketio.Server()
 app = socketio.WSGIApp(
