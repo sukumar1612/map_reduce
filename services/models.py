@@ -3,14 +3,20 @@ import binascii
 import os
 from typing import Optional, Union
 
-from pydantic import BaseModel
+from pydantic import BaseModel, root_validator, validator
 
 
 class Task(BaseModel):
-    job_id: str = binascii.hexlify(os.urandom(32)).decode("utf-8")
+    job_id: Optional[str] = None
     file_name: Optional[str] = None
     mapper_function: Union[bytes, str]
     reducer_function: Union[bytes, str]
+
+    @validator("job_id", pre=True, always=True)
+    def assign_job_id(cls, job_id):
+        if job_id is None:
+            return binascii.hexlify(os.urandom(32)).decode("utf-8")
+        return job_id
 
 
 class FileModel(BaseModel):

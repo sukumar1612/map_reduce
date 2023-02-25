@@ -1,3 +1,4 @@
+import asyncio
 import json
 import tempfile
 from io import TextIOWrapper
@@ -5,11 +6,14 @@ from typing import Union
 
 import socketio
 
+from master.redis_client_wrapper import RedisHandler
 from services.master.master_node import MasterNode, master_node_factory
-from services.models import Task, serialize_file_model, serialize_task
+from services.models import (Task, deserialize_task, serialize_file_model,
+                             serialize_task)
 
 
 class MasterAPIInterface:
+    TASK_COMPLETE = asyncio.Event()
     RECORD_FILE: Union[TextIOWrapper, None] = None
     CURRENT_TASK: Union[Task, None] = None
 
@@ -28,11 +32,13 @@ class MasterAPIInterface:
         # cls.CONNECTED_NODES = 0
         # cls.CONNECTED_NODES_METADATA = {}
         cls.NUMBER_OF_NODES_CURRENTLY_USED_IN_TASK = 0
+        cls.TASK_COMPLETE.set()
 
     @classmethod
     def prepare_for_next_task(cls):
         cls.MASTER_NODE_HANDLER.reset_state()
         cls.CURRENT_TASK = None
+        cls.TASK_COMPLETE.set()
 
     @classmethod
     def build_csv_file_from_chunks(cls, chunk: bytes):
@@ -127,3 +133,15 @@ class MasterAPIInterface:
     @classmethod
     def insert_partial_result(cls, result: dict):
         cls.MASTER_NODE_HANDLER.aggregate_reduced_data(result)
+
+    @classmethod
+    async def trigger_task_queue(cls, socker_connection: socketio.Namespace):
+        redis_handler = RedisHandler(host="localhost", pub_sub_channel="task_queue")
+        async for data in redis_handler.subscribe_to_channel():
+            print(data)
+            await MasterAPIInterface.add_and_distribute_task(
+                task=deserialize_task(json.loads(data)),
+                socket_connection=socker_connection,
+            )
+            MasterAPIInterface.TASK_COMPLETE.clear()
+            await MasterAPIInterface.TASK_COMPLETE.wait()

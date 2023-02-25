@@ -1,9 +1,11 @@
+import asyncio
 import json
 import os
 from pathlib import Path
 
 import socketio
 
+from master.redis_client_wrapper import RedisHandler
 from services.master.master_api_interface import MasterAPIInterface
 from services.models import deserialize_task
 
@@ -28,6 +30,9 @@ class ClientConnectionNamespace(socketio.AsyncNamespace):
             socket_connection=self,
         )
 
+    async def on_trigger_task_queue(self, sid: str, message_body: dict):
+        asyncio.create_task(MasterAPIInterface.trigger_task_queue(self))
+
     async def on_reset_state(self, sid: str, message_body: dict):
         print("__master reset__")
         MasterAPIInterface.reset_state()
@@ -40,6 +45,7 @@ class ClientConnectionNamespace(socketio.AsyncNamespace):
             )
 
     async def on_get_results(self, sid: str, message_body: dict):
+        print(message_body["job_id"])
         await self.emit(
             "result",
             MasterAPIInterface.RESULTS.get(message_body["job_id"]),
