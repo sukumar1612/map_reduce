@@ -10,6 +10,7 @@ import socketio
 from common.models import Task
 from worker.services.mapper_and_reducer import (MapperAndReducer,
                                                 mapper_and_reducer_factory)
+from worker.services.shared_data_manager import SharedMapValue
 
 
 class WorkerAPIInterface:
@@ -49,6 +50,7 @@ class WorkerAPIInterface:
     @classmethod
     def perform_mapping_and_return_distinct_keys(cls) -> list:
         cls.MAP_REDUCE_HANDLER.map_data(task=cls.CURRENT_TASK)
+        SharedMapValue.update_map_list(cls.MAP_REDUCE_HANDLER.get_mapped_groups())
         return cls.MAP_REDUCE_HANDLER.fetch_distinct_keys()
 
     @classmethod
@@ -79,13 +81,13 @@ class WorkerAPIInterface:
     @classmethod
     def fetch_mapped_value_for_specific_key(cls, key_list: list) -> dict:
         return {
-            key: cls.MAP_REDUCE_HANDLER.fetch_mapped_values_for_specific_key(key=key)
+            key: SharedMapValue.MAP_VALUE.get(key, None)
             for key in key_list
         }
 
 
 async def receive_other_node_map_data(
-    api_interface: WorkerAPIInterface, ip: str
+        api_interface: WorkerAPIInterface, ip: str
 ) -> Any:
     socket_connection = socketio.AsyncClient()
     file = tempfile.NamedTemporaryFile()

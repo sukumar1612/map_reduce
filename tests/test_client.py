@@ -19,6 +19,12 @@ def on_result(message_body: dict):
     pprint.pprint(message_body)
 
 
+@sio.on('all_file_init_done', namespace='/client')
+def on_all_file_init_done(message_body: dict):
+    pprint.pprint(message_body)
+    print("file init done")
+
+
 if __name__ == "__main__":
     task1 = Task(
         mapper_function=marshal.dumps(MapFunction.__code__),
@@ -36,7 +42,7 @@ if __name__ == "__main__":
         "ws://localhost:5000", socketio_path="ws/socket.io", namespaces=["/client"]
     )
 
-    file = open("random_data_1.csv", "rb")
+    file = open("random_data_2.csv", "rb")
     chunks = []
     temp_chunk = file.read(CHUNK_SIZE)
     while temp_chunk:
@@ -53,28 +59,27 @@ if __name__ == "__main__":
         print(f"sent chunk: {index + 1}")
 
     sio.emit("file_initialization", {"completed": True}, namespace="/client")
-    # sio.emit(
-    #     "trigger_task_queue",
-    #     {},
-    #     namespace="/client",
-    # )
+    sio.emit(
+        "trigger_task_queue",
+        {},
+        namespace="/client",
+    )
     print("__task queue reader started__")
     print("__file initialized done + task queue started__")
-    time.sleep(10)
+    time.sleep(20)
     serialized_task = json.dumps(serialize_task(task1))
     requests.post(
         url="http://localhost:5000/rest/add-task", json={"task": serialized_task}
     )
 
     print("__added another task__")
-    time.sleep(3)
     serialized_task = json.dumps(serialize_task(task2))
     requests.post(
         url="http://localhost:5000/rest/add-task", json={"task": serialized_task}
     )
 
     print("__tasks submitted__")
-    time.sleep(5)
+    time.sleep(15)
     print("__reset_state__")
     # sio.emit("reset_state", {}, namespace="/client")
     # time.sleep(3)

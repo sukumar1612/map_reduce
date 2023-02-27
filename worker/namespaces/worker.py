@@ -17,6 +17,11 @@ class WorkerNamespace(socketio.ClientNamespace):
     def on_worker_node_initialization(self, message_body: dict):
         print(message_body.get("completed"))
         if message_body.get("completed", None) is True:
+            self.emit(
+                'file_init_done',
+                {},
+                namespace='/worker',
+            )
             return
         file_chunk = deserialize_file_model(json.loads(message_body["chunk"]))
         print(f"__received chunk {file_chunk.chunk_index}__")
