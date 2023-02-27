@@ -1,4 +1,3 @@
-import threading
 from multiprocessing import Manager, Process
 
 import eventlet
@@ -6,14 +5,14 @@ import socketio
 
 from worker.namespaces.p2p_server import app
 from worker.namespaces.worker import WorkerNamespace
-from worker.services.shared_data_manager import SharedMapValue
+from worker.services.worker_api_interface import WorkerAPIInterface
 
 sio_worker = socketio.Client()
 sio_worker.register_namespace(WorkerNamespace("/worker"))
 
 
 def worker_client_process(host: str, shared_map: dict):
-    SharedMapValue.MAP_VALUE = shared_map
+    WorkerAPIInterface.SHARED_MAP_VALUE = shared_map
     print(f"http://{host}:5000/ws/socket.io/")
     sio_worker.connect(
         f"http://{host}:5000/", socketio_path="ws/socket.io", namespaces=["/worker"]
@@ -22,7 +21,7 @@ def worker_client_process(host: str, shared_map: dict):
 
 
 def worker_server_process(host: str, shared_map: dict):
-    SharedMapValue.MAP_VALUE = shared_map
+    WorkerAPIInterface.SHARED_MAP_VALUE = shared_map
     print(host)
     eventlet.wsgi.server(eventlet.listen((host, 7000)), app)
 
