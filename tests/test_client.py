@@ -19,7 +19,7 @@ def on_result(message_body: dict):
     pprint.pprint(message_body)
 
 
-@sio.on('all_file_init_done', namespace='/client')
+@sio.on("all_file_init_done", namespace="/client")
 def on_all_file_init_done(message_body: dict):
     pprint.pprint(message_body)
     print("file init done")

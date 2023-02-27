@@ -80,14 +80,11 @@ class WorkerAPIInterface:
 
     @classmethod
     def fetch_mapped_value_for_specific_key(cls, key_list: list) -> dict:
-        return {
-            key: SharedMapValue.MAP_VALUE.get(key, None)
-            for key in key_list
-        }
+        return {key: SharedMapValue.MAP_VALUE.get(key, None) for key in key_list}
 
 
 async def receive_other_node_map_data(
-        api_interface: WorkerAPIInterface, ip: str
+    api_interface: WorkerAPIInterface, ip: str
 ) -> Any:
     socket_connection = socketio.AsyncClient()
     file = tempfile.NamedTemporaryFile()

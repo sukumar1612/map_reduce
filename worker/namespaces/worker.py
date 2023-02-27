@@ -18,9 +18,9 @@ class WorkerNamespace(socketio.ClientNamespace):
         print(message_body.get("completed"))
         if message_body.get("completed", None) is True:
             self.emit(
-                'file_init_done',
+                "file_init_done",
                 {},
-                namespace='/worker',
+                namespace="/worker",
             )
             return
         file_chunk = deserialize_file_model(json.loads(message_body["chunk"]))

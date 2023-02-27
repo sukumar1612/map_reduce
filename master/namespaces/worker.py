@@ -26,12 +26,11 @@ class WorkerNamespace(socketio.AsyncNamespace):
     async def on_file_init_done(self, sid: str, message_body: dict):
         self.COUNT_OF_INITIALIZED_NODES += 1
         print(f"___number of files sent: {self.COUNT_OF_INITIALIZED_NODES}___")
-        if self.COUNT_OF_INITIALIZED_NODES == MasterAPIInterface.NUMBER_OF_NODES_CURRENTLY_USED_IN_TASK:
-            await self.emit(
-                event='all_file_init_done',
-                data={},
-                namespace='/client'
-            )
+        if (
+            self.COUNT_OF_INITIALIZED_NODES
+            == MasterAPIInterface.NUMBER_OF_NODES_CURRENTLY_USED_IN_TASK
+        ):
+            await self.emit(event="all_file_init_done", data={}, namespace="/client")
 
     async def on_get_map_results(self, sid, message_body: dict):
         self.COUNT_OF_MAP_RESULTS_RECEIVED += 1
@@ -40,8 +39,8 @@ class WorkerNamespace(socketio.AsyncNamespace):
         print(f"___number of map result sent: {self.COUNT_OF_MAP_RESULTS_RECEIVED}___")
         print(f"map results: {message_body['map_keys']}")
         if (
-                self.COUNT_OF_MAP_RESULTS_RECEIVED
-                == MasterAPIInterface.NUMBER_OF_NODES_CURRENTLY_USED_IN_TASK
+            self.COUNT_OF_MAP_RESULTS_RECEIVED
+            == MasterAPIInterface.NUMBER_OF_NODES_CURRENTLY_USED_IN_TASK
         ):
             self.COUNT_OF_REDUCE_RESULTS_RECEIVED = (
                 await MasterAPIInterface.assign_reduce_keys(socket_connection=self)

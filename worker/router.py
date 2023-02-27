@@ -1,12 +1,11 @@
 import threading
+from multiprocessing import Manager, Process
 
 import eventlet
 import socketio
 
 from worker.namespaces.p2p_server import app
 from worker.namespaces.worker import WorkerNamespace
-from multiprocessing import Process, Manager
-
 from worker.services.shared_data_manager import SharedMapValue
 
 sio_worker = socketio.Client()
@@ -36,6 +35,7 @@ def worker_process(p2p_server_host: str, master_server_host: str):
     p2.start()
     p1.join()
     p2.join()
+
 
 # def worker_process(p2p_server_host: str, master_server_host: str):
 #     t1 = threading.Thread(target=worker_client_thread, args=(master_server_host,))
