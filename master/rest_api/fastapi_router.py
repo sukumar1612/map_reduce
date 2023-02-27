@@ -17,8 +17,21 @@ async def add_task(task: TaskMessage):
     return Response(status_code=201)
 
 
+@app.delete("/delete-all-results")
+async def delete_all_results():
+    MasterAPIInterface.RESULTS.clear()
+
+
 @app.get("/fetch-result")
 async def fetch_result(job_id: str):
-    return JSONResponse(
-        content=MasterAPIInterface.fetch_result(job_id), status_code=200
-    )
+    if (
+        job_id in MasterAPIInterface.RESULTS.keys()
+        and MasterAPIInterface.RESULTS[job_id].get("result", None) is not None
+    ):
+        return JSONResponse(
+            content=MasterAPIInterface.fetch_result(job_id), status_code=200
+        )
+    elif job_id in MasterAPIInterface.RESULTS.keys():
+        return JSONResponse(content={"status": "In Progress"}, status_code=200)
+    else:
+        return JSONResponse(content={"status": "Queued"}, status_code=200)

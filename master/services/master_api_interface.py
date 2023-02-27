@@ -1,4 +1,5 @@
 import asyncio
+import datetime
 import json
 import tempfile
 from io import TextIOWrapper
@@ -38,9 +39,12 @@ class MasterAPIInterface:
 
     @classmethod
     def prepare_for_next_task(cls):
-        cls.RESULTS[
-            cls.CURRENT_TASK.job_id
-        ] = cls.MASTER_NODE_HANDLER.get_final_reduced_data()
+        cls.RESULTS[cls.CURRENT_TASK.job_id].update(
+            {
+                "result": cls.MASTER_NODE_HANDLER.get_final_reduced_data(),
+                "end_time": datetime.datetime.now().timestamp(),
+            }
+        )
         cls.MASTER_NODE_HANDLER.reset_state()
         cls.CURRENT_TASK = None
         cls.TASK_COMPLETE.set()
@@ -143,9 +147,12 @@ class MasterAPIInterface:
     @classmethod
     async def trigger_task_queue(cls, socket_connection: socketio.Namespace):
         async for data in TaskQueueSingleton.dequeue():
-            print(data)
+            deserialized_task = deserialize_task(json.loads(data))
+            MasterAPIInterface.RESULTS[deserialized_task.job_id] = {
+                "start_time": datetime.datetime.now().timestamp()
+            }
             await MasterAPIInterface.add_and_distribute_task(
-                task=deserialize_task(json.loads(data)),
+                task=deserialized_task,
                 socket_connection=socket_connection,
             )
             MasterAPIInterface.TASK_COMPLETE.clear()
