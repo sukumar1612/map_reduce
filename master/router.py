@@ -3,7 +3,7 @@ from fastapi import FastAPI
 
 from master.namespaces.client import ClientConnectionNamespace
 from master.namespaces.worker import WorkerNamespace
-from master.rest_api.fastapi_router import app
+from master.rest_api.router import app
 
 fastapi_app = FastAPI()
 

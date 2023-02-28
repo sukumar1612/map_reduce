@@ -4,9 +4,9 @@ from faker import Faker
 
 if __name__ == "__main__":
     fake = Faker()
-    number_of_records = int(100)
+    number_of_records = int(5000000)
 
-    with open("random_data.csv", mode="w") as file:
+    with open("random_data_3.csv", mode="w") as file:
         file_writer = csv.writer(
             file, delimiter=",", quotechar='"', quoting=csv.QUOTE_MINIMAL
         )

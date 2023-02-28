@@ -23,5 +23,4 @@ if __name__ == "__main__":
     # 1. add simple jwt authentication to the fastapi + socketio server
     # 3. make client with typer or something similar -> priority 3
     # 4. manage dependencies with poetry -> last
-    # 5. assign priority to worker client thread rather than p2p server thread -> priority 2 not required
     # 6. create docker file and orchestrate with kubernetes -> priority -> 1

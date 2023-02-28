@@ -66,37 +66,37 @@ if __name__ == "__main__":
     )
     print("__task queue reader started__")
     print("__file initialized done + task queue started__")
-    time.sleep(20)
-    serialized_task = json.dumps(serialize_task(task1))
-    requests.post(
-        url="http://localhost:5000/rest/add-task", json={"task": serialized_task}
-    )
-
-    print("__added another task__")
-    serialized_task = json.dumps(serialize_task(task2))
-    requests.post(
-        url="http://localhost:5000/rest/add-task", json={"task": serialized_task}
-    )
-
-    print("__tasks submitted__")
-    time.sleep(15)
-    print("__reset_state__")
-    # sio.emit("reset_state", {}, namespace="/client")
-    # time.sleep(3)
-    # sio.emit("get_results", {"job_id": job_id}, namespace="/client")
-    # time.sleep(3)
-    # sio.emit("get_results", {"job_id": job_id2}, namespace="/client")
-    # time.sleep(3)
-
-    pprint.pprint(
-        requests.get(
-            url="http://localhost:5000/rest/fetch-result", params={"job_id": job_id}
-        ).json()
-    )
-    pprint.pprint(
-        requests.get(
-            url="http://localhost:5000/rest/fetch-result", params={"job_id": job_id2}
-        ).json()
-    )
-    print("_done_")
+    # time.sleep(20)
+    # serialized_task = json.dumps(serialize_task(task1))
+    # requests.post(
+    #     url="http://localhost:5000/rest/add-task", json={"task": serialized_task}
+    # )
+    #
+    # print("__added another task__")
+    # serialized_task = json.dumps(serialize_task(task2))
+    # requests.post(
+    #     url="http://localhost:5000/rest/add-task", json={"task": serialized_task}
+    # )
+    #
+    # print("__tasks submitted__")
+    # time.sleep(15)
+    # print("__reset_state__")
+    # # sio.emit("reset_state", {}, namespace="/client")
+    # # time.sleep(3)
+    # # sio.emit("get_results", {"job_id": job_id}, namespace="/client")
+    # # time.sleep(3)
+    # # sio.emit("get_results", {"job_id": job_id2}, namespace="/client")
+    # # time.sleep(3)
+    #
+    # pprint.pprint(
+    #     requests.get(
+    #         url="http://localhost:5000/rest/fetch-result", params={"job_id": job_id}
+    #     ).json()
+    # )
+    # pprint.pprint(
+    #     requests.get(
+    #         url="http://localhost:5000/rest/fetch-result", params={"job_id": job_id2}
+    #     ).json()
+    # )
+    # print("_done_")
     sio.wait()
