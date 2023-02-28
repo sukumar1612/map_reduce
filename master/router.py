@@ -7,7 +7,9 @@ from master.rest_api.router import app
 
 fastapi_app = FastAPI()
 
-sio = socketio.AsyncServer(async_mode="asgi", cors_allowed_origins="*", ping_timeout=60)
+sio = socketio.AsyncServer(
+    async_mode="asgi", cors_allowed_origins="*", ping_timeout=120
+)
 
 sio.register_namespace(ClientConnectionNamespace("/client"))
 sio.register_namespace(WorkerNamespace("/worker"))

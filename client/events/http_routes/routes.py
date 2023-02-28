@@ -18,6 +18,12 @@ def fetch_results(http_base_url: str):
         print(f"Result: {response}")
 
 
+@http_handler.add_http_route(event="fetch_all_results")
+def fetch_all_results(http_base_url: str):
+    response = requests.get(url=f"{http_base_url}/fetch-all-results").json()
+    print(f"Result: {response}")
+
+
 @http_handler.add_http_route(event="add_tasks")
 def add_tasks(http_base_url: str):
     for job in StateManager.jobs:

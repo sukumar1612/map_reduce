@@ -29,4 +29,4 @@ class ClientConnectionNamespace(socketio.AsyncNamespace):
 
     async def on_reset_state(self, sid: str, message_body: dict):
         print("__master reset__")
-        await MasterAPIInterface.reset_state(self)
+        await MasterAPIInterface.reset_state(self, sid=sid)

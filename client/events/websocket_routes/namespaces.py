@@ -8,6 +8,9 @@ class ClientNamespaceResponseHandlers(socketio.AsyncClientNamespace):
         pprint.pprint(message_body)
 
     async def on_all_file_init_done(self, message_body: dict):
-        pprint.pprint(message_body)
-        print("file init done")
+        print("_____All worker nodes are initialized_____")
+        await self.disconnect()
+
+    async def on_reset_done(self, message_body: dict):
+        print("state successfully reset")
         await self.disconnect()

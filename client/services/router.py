@@ -1,4 +1,3 @@
-import asyncio
 from typing import Callable, Dict, Union
 
 import socketio
@@ -65,14 +64,21 @@ class Router(BluePrint):
             command = self.get_terminal_command_handler(event)
 
             if http_route is None and socketio_route is None and command is None:
-                raise Exception("Not a valid event")
+                if event == "help":
+                    for key in self.http_routes.keys():
+                        print(f"\n-> command :: {key}")
+                    for key in self.socketio_routes.keys():
+                        print(f"\n-> command :: {key}")
+                    for key in self.terminal_commands.keys():
+                        print(f"\n-> command :: {key}")
+
             elif socketio_route is not None:
                 await self.sio.connect(
                     self.sio_base_url,
                     socketio_path=self.sio_path,
                     namespaces=["/client"],
                 )
-                await socketio_route(self.sio, self.sio_base_url, self.sio_path)
+                await socketio_route(self.sio)
             elif http_route is not None:
                 http_route(self.http_base_url)
             elif command is not None:

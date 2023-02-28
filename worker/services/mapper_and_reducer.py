@@ -14,8 +14,8 @@ class DictionaryToObject:
 
 
 class MapperAndReducer:
-    def __init__(self, records: list):
-        self.records: List[dict] = records
+    def __init__(self, csv_iterator: list):
+        self.csv_iterator: list = csv_iterator
         self.groups_after_mapping: Dict[str, list] = {}
         self.groups_after_reducing: Dict[str, list] = {}
         self.reduce_keys: list = []
@@ -24,12 +24,8 @@ class MapperAndReducer:
         mapper_function = types.FunctionType(
             marshal.loads(task.mapper_function), globals(), "MapFunc"
         )
-        self.groups_after_mapping = mapper_function(self.records)
-        # for data in self.records:
-        #     key, value = mapper_function(DictionaryToObject(**data))
-        #     if key not in self.groups_after_mapping:
-        #         self.groups_after_mapping[key] = []
-        #     self.groups_after_mapping[key].append(value)
+        for chunk in self.csv_iterator:
+            self.groups_after_mapping.update(mapper_function(chunk.to_dict("records")))
 
     def reduce_data(self, task: Task) -> None:
         reducer_function = types.FunctionType(
@@ -72,4 +68,4 @@ class MapperAndReducer:
 
 
 def mapper_and_reducer_factory(file_name: str) -> MapperAndReducer:
-    return MapperAndReducer(records=pd.read_csv(file_name).to_dict("records"))
+    return MapperAndReducer(csv_iterator=pd.read_csv(file_name, chunksize=100000))

@@ -35,3 +35,15 @@ async def fetch_result(job_id: str):
         return JSONResponse(content={"status": "In Progress"}, status_code=200)
     else:
         return JSONResponse(content={"status": "Queued"}, status_code=200)
+
+
+@app.get("/fetch-all-results")
+async def fetch_all_results():
+    final_results = []
+    for job_id, data in MasterAPIInterface.RESULTS.items():
+        if data.get("result", None) is not None:
+            final_results.append(data)
+        else:
+            final_results.append({"job_id": job_id, "status": "In Progress"})
+
+    return JSONResponse(content=final_results, status_code=200)

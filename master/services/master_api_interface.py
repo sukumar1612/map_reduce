@@ -25,7 +25,7 @@ class MasterAPIInterface:
     RESULTS: dict = {}
 
     @classmethod
-    async def reset_state(cls, socket_connection: socketio.Namespace):
+    async def reset_state(cls, socket_connection: socketio.Namespace, sid: str):
         cls.RECORD_FILE.close()
         cls.CURRENT_TASK = None
         cls.MASTER_NODE_HANDLER = None
@@ -36,6 +36,7 @@ class MasterAPIInterface:
             await socket_connection.emit(
                 "reset_state", {}, room=node_meta_data["sid"], namespace="/worker"
             )
+        await socket_connection.emit("reset_done", {}, room=sid, namespace="/client")
 
     @classmethod
     def prepare_for_next_task(cls):
