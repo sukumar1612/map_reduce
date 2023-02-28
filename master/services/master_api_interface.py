@@ -27,6 +27,7 @@ class MasterAPIInterface:
     @classmethod
     async def reset_state(cls, socket_connection: socketio.Namespace, sid: str):
         cls.RECORD_FILE.close()
+        cls.RECORD_FILE = None
         cls.CURRENT_TASK = None
         cls.MASTER_NODE_HANDLER = None
         cls.NUMBER_OF_NODES_CURRENTLY_USED_IN_TASK = 0
