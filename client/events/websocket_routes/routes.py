@@ -1,6 +1,7 @@
 import json
 
 from socketio import AsyncClient, Client
+from rich.progress import track
 
 from client.services.router import BluePrint
 from common.models import FileModel, serialize_file_model
@@ -18,7 +19,8 @@ async def file_init(sio: AsyncClient, sio_base_url: str, sio_path: str):
         chunks.append(temp_chunk)
         temp_chunk = file.read(CHUNK_SIZE)
 
-    for index, chunk in enumerate(chunks):
+    index = 0
+    for chunk in track(chunks, description="Processing..."):
         file_chunk = json.dumps(
             serialize_file_model(
                 FileModel(chunk=chunk, chunk_index=index, completed=False)
@@ -27,7 +29,7 @@ async def file_init(sio: AsyncClient, sio_base_url: str, sio_path: str):
         await sio.emit(
             "file_initialization", {"chunk": file_chunk}, namespace="/client"
         )
-        print(f"sent chunk: {index + 1}")
+        index += 1
 
     await sio.emit("file_initialization", {"completed": True}, namespace="/client")
     await sio.emit(
@@ -35,6 +37,7 @@ async def file_init(sio: AsyncClient, sio_base_url: str, sio_path: str):
         {},
         namespace="/client",
     )
+    print(f'sent total of {index} chunks')
     await sio.wait()
 
 
