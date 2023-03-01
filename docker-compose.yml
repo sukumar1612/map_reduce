@@ -1,0 +1,33 @@
+version: '3'
+services:
+  master-node:
+    image: master_node
+    ports:
+      - "5000:5000"
+    networks:
+      map-reduce-network:
+        aliases:
+          - master-node-alias
+
+  worker-node-1:
+    image: worker_node
+    networks:
+      - map-reduce-network
+    depends_on:
+    - master-node
+    environment:
+      - MASTER_HOST_IP=master-node-alias
+      - WORKER_HOST_IP=0.0.0.0
+
+  worker-node-2:
+    image: bef01e5dfb90
+    networks:
+      - map-reduce-network
+    depends_on:
+      - master-node
+    environment:
+      - MASTER_HOST_IP=master-node-alias
+      - WORKER_HOST_IP=0.0.0.0
+
+networks:
+  map-reduce-network: {}
