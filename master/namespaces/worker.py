@@ -8,10 +8,6 @@ LOCK = asyncio.Lock()
 
 
 class WorkerNamespace(socketio.AsyncNamespace):
-    COUNT_OF_INITIALIZED_NODES: int = 0
-    COUNT_OF_MAP_RESULTS_RECEIVED: int = 0
-    COUNT_OF_REDUCE_RESULTS_RECEIVED: int = 0
-
     async def on_connect(self, sid: str, environ: dict):
         print(f'http://{environ.get("asgi.scope").get("client")[0]}:7000')
         node_id = MasterAPIInterface.add_new_node(
@@ -24,35 +20,33 @@ class WorkerNamespace(socketio.AsyncNamespace):
         )
 
     async def on_file_init_done(self, sid: str, message_body: dict):
-        self.COUNT_OF_INITIALIZED_NODES += 1
-        print(f"___number of files sent: {self.COUNT_OF_INITIALIZED_NODES}___")
+        MasterAPIInterface.COUNT_OF_INITIALIZED_NODES += 1
+        print(
+            f"___number of files sent: {MasterAPIInterface.COUNT_OF_INITIALIZED_NODES}___"
+        )
         if (
-            self.COUNT_OF_INITIALIZED_NODES
+            MasterAPIInterface.COUNT_OF_INITIALIZED_NODES
             == MasterAPIInterface.NUMBER_OF_NODES_CURRENTLY_USED_IN_TASK
         ):
             await self.emit(event="all_file_init_done", data={}, namespace="/client")
 
     async def on_get_map_results(self, sid, message_body: dict):
-        self.COUNT_OF_MAP_RESULTS_RECEIVED += 1
         async with LOCK:
             MasterAPIInterface.insert_map_result_data(map_keys=message_body["map_keys"])
-        print(f"___number of map result sent: {self.COUNT_OF_MAP_RESULTS_RECEIVED}___")
+        print(
+            f"___number of map result sent: {MasterAPIInterface.COUNT_OF_MAP_RESULTS_RECEIVED}___"
+        )
         print(f"map results: {message_body['map_keys']}")
         if (
-            self.COUNT_OF_MAP_RESULTS_RECEIVED
+            MasterAPIInterface.COUNT_OF_MAP_RESULTS_RECEIVED
             == MasterAPIInterface.NUMBER_OF_NODES_CURRENTLY_USED_IN_TASK
         ):
-            self.COUNT_OF_REDUCE_RESULTS_RECEIVED = (
-                await MasterAPIInterface.assign_reduce_keys(socket_connection=self)
-            )
+            await MasterAPIInterface.assign_reduce_keys(socket_connection=self)
 
     async def on_get_final_result(self, sid, message_body: dict):
         print(message_body)
         MasterAPIInterface.insert_partial_result(message_body)
         await self.emit("prepare_for_next_task", {}, room=sid, namespace="/worker")
-        self.COUNT_OF_REDUCE_RESULTS_RECEIVED -= 1
 
-        if self.COUNT_OF_REDUCE_RESULTS_RECEIVED <= 0:
+        if MasterAPIInterface.COUNT_OF_REDUCE_RESULTS_RECEIVED <= 0:
             MasterAPIInterface.prepare_for_next_task()
-            self.COUNT_OF_INITIALIZED_NODES = 0
-            self.COUNT_OF_MAP_RESULTS_RECEIVED = 0

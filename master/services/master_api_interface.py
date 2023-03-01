@@ -22,16 +22,26 @@ class MasterAPIInterface:
     CONNECTED_NODES_METADATA: dict = {}
     NUMBER_OF_NODES_CURRENTLY_USED_IN_TASK: int = 0
 
+    COUNT_OF_INITIALIZED_NODES: int = 0
+    COUNT_OF_MAP_RESULTS_RECEIVED: int = 0
+    COUNT_OF_REDUCE_RESULTS_RECEIVED: int = 0
+
     RESULTS: dict = {}
 
     @classmethod
     async def reset_state(cls, socket_connection: socketio.Namespace, sid: str):
+        # job details
         cls.RECORD_FILE.close()
         cls.RECORD_FILE = None
         cls.CURRENT_TASK = None
         cls.MASTER_NODE_HANDLER = None
         cls.NUMBER_OF_NODES_CURRENTLY_USED_IN_TASK = 0
+
+        # job tracking variables
         cls.TASK_COMPLETE.set()
+        cls.COUNT_OF_INITIALIZED_NODES = 0
+        cls.COUNT_OF_MAP_RESULTS_RECEIVED = 0
+        cls.COUNT_OF_REDUCE_RESULTS_RECEIVED = 0
 
         for node_id, node_meta_data in cls.CONNECTED_NODES_METADATA.items():
             await socket_connection.emit(
@@ -50,6 +60,9 @@ class MasterAPIInterface:
         cls.MASTER_NODE_HANDLER.reset_state()
         cls.CURRENT_TASK = None
         cls.TASK_COMPLETE.set()
+        cls.COUNT_OF_INITIALIZED_NODES = 0
+        cls.COUNT_OF_MAP_RESULTS_RECEIVED = 0
+        cls.COUNT_OF_REDUCE_RESULTS_RECEIVED = 0
 
     @classmethod
     def build_csv_file_from_chunks(cls, chunk: bytes):
@@ -116,9 +129,10 @@ class MasterAPIInterface:
     @classmethod
     def insert_map_result_data(cls, map_keys: list):
         cls.MASTER_NODE_HANDLER.insert_mapped_keys(map_keys)
+        cls.COUNT_OF_MAP_RESULTS_RECEIVED += 1
 
     @classmethod
-    async def assign_reduce_keys(cls, socket_connection: socketio.Namespace) -> int:
+    async def assign_reduce_keys(cls, socket_connection: socketio.Namespace) -> None:
         node_reduce_map = (
             cls.MASTER_NODE_HANDLER.assign_reduce_key_to_workers_round_robin(
                 cls.NUMBER_OF_NODES_CURRENTLY_USED_IN_TASK
@@ -140,11 +154,14 @@ class MasterAPIInterface:
                 namespace="/worker",
             )
             number_of_nodes_assigned_reduce_keys += 1
-        return number_of_nodes_assigned_reduce_keys
+        MasterAPIInterface.COUNT_OF_REDUCE_RESULTS_RECEIVED = (
+            number_of_nodes_assigned_reduce_keys
+        )
 
     @classmethod
     def insert_partial_result(cls, result: dict):
         cls.MASTER_NODE_HANDLER.aggregate_reduced_data(result)
+        cls.COUNT_OF_REDUCE_RESULTS_RECEIVED -= 1
 
     @classmethod
     async def trigger_task_queue(cls, socket_connection: socketio.Namespace):
