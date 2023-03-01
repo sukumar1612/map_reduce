@@ -11,7 +11,7 @@ CHUNK_SIZE = 1024 * 100
 
 
 async def stream_file(sio: AsyncClient):
-    file = open("random_data_3.csv", "rb")
+    file = open("random_data_5.csv", "rb")
     chunks = []
     temp_chunk = file.read(CHUNK_SIZE)
     while temp_chunk:

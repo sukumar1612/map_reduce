@@ -20,7 +20,7 @@ services:
       - WORKER_HOST_IP=0.0.0.0
 
   worker-node-2:
-    image: bef01e5dfb90
+    image: worker_node
     networks:
       - map-reduce-network
     depends_on:
