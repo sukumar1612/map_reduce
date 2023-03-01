@@ -7,7 +7,7 @@ from worker.namespaces.p2p_server import app
 from worker.namespaces.worker import WorkerNamespace
 from worker.services.worker_api_interface import WorkerAPIInterface
 
-sio_worker = socketio.Client()
+sio_worker = socketio.Client(request_timeout=1200)
 sio_worker.register_namespace(WorkerNamespace("/worker"))
 
 
