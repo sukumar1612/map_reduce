@@ -1,5 +1,5 @@
 from client.events.http_routes.routes import http_handler
-from client.events.terminal_commands.commands import commands_handler
+from client.events.terminal_commands.routes import commands_handler
 from client.events.websocket_routes.namespaces import \
     ClientNamespaceResponseHandlers
 from client.events.websocket_routes.routes import websocket_handler
