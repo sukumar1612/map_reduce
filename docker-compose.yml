@@ -49,3 +49,5 @@ services:
 
 networks:
   map-reduce-network: {}
+
+# pass LOGGING_LEVEL=DEBUG if you need debug mode, else pass LOGGING_LEVEL=WARNING
