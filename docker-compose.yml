@@ -1,7 +1,7 @@
 version: '3'
 services:
   master-node:
-    image: master_node
+    image: sg162/map_reduce:master_node
     ports:
       - "5000:5000"
     environment:
@@ -12,7 +12,7 @@ services:
           - master-node-alias
 
   worker-node-1:
-    image: worker_node
+    image: sg162/map_reduce:worker_node
     networks:
       - map-reduce-network
     depends_on:
@@ -23,11 +23,25 @@ services:
       - LOGGING_LEVEL=DEBUG
 
   worker-node-2:
-    image: worker_node
+    image: sg162/map_reduce:worker_node
     networks:
       - map-reduce-network
     depends_on:
       - master-node
+      - worker-node-1
+    environment:
+      - MASTER_HOST_IP=master-node-alias
+      - WORKER_HOST_IP=0.0.0.0
+      - LOGGING_LEVEL=DEBUG
+
+  worker-node-3:
+    image: sg162/map_reduce:worker_node
+    networks:
+      - map-reduce-network
+    depends_on:
+      - master-node
+      - worker-node-1
+      - worker-node-2
     environment:
       - MASTER_HOST_IP=master-node-alias
       - WORKER_HOST_IP=0.0.0.0
