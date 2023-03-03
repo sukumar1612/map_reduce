@@ -12,5 +12,5 @@ class ClientNamespaceResponseHandlers(socketio.AsyncClientNamespace):
         await self.disconnect()
 
     async def on_reset_done(self, message_body: dict):
-        print("state successfully reset")
+        print("_____state successfully reset_____")
         await self.disconnect()

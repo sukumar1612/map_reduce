@@ -7,9 +7,12 @@ from typing import Union
 
 import socketio
 
+from common.logger_module import get_logger
 from common.models import Task, deserialize_task, serialize_task
 from master.services.master_node_handler import MasterNode, master_node_factory
 from master.services.task_queue import TaskQueueSingleton
+
+LOG = get_logger(__name__)
 
 
 class MasterAPIInterface:
@@ -43,10 +46,15 @@ class MasterAPIInterface:
         cls.COUNT_OF_MAP_RESULTS_RECEIVED = 0
         cls.COUNT_OF_REDUCE_RESULTS_RECEIVED = 0
 
+        LOG.debug("Reset all master variables")
+
         for node_id, node_meta_data in cls.CONNECTED_NODES_METADATA.items():
             await socket_connection.emit(
                 "reset_state", {}, room=node_meta_data["sid"], namespace="/worker"
             )
+            LOG.debug(f"reset node state with id: {node_id}")
+
+        LOG.debug(f"all nodes are reset")
         await socket_connection.emit("reset_done", {}, room=sid, namespace="/client")
 
     @classmethod
@@ -64,6 +72,8 @@ class MasterAPIInterface:
         cls.COUNT_OF_MAP_RESULTS_RECEIVED = 0
         cls.COUNT_OF_REDUCE_RESULTS_RECEIVED = 0
 
+        LOG.debug("Reset all master variables for the next task")
+
     @classmethod
     def build_csv_file_from_chunks(cls, chunk: bytes):
         if cls.RECORD_FILE is None:
@@ -77,6 +87,7 @@ class MasterAPIInterface:
             "ip": node_ip,
         }
         cls.CONNECTED_NODES += 1
+        LOG.debug(f"number of connected nodes : {cls.CONNECTED_NODES}")
         return cls.CONNECTED_NODES - 1
 
     @classmethod
@@ -92,6 +103,7 @@ class MasterAPIInterface:
                 worker_node_count=cls.NUMBER_OF_NODES_CURRENTLY_USED_IN_TASK
             )
         )
+        LOG.debug("created chunks")
         for node_id, node_meta_data in cls.CONNECTED_NODES_METADATA.items():
             for file_chunk in cls.MASTER_NODE_HANDLER.file_chunking(
                 temp_file_list[node_id]
@@ -108,14 +120,13 @@ class MasterAPIInterface:
                 room=node_meta_data["sid"],
                 namespace="/worker",
             )
-            print(f"sent file to node {node_id} successfully")
+            LOG.debug(f"uploaded file to {node_id}")
 
     @classmethod
     async def add_and_distribute_task(
         cls, task: Task, socket_connection: socketio.Namespace
     ):
         cls.CURRENT_TASK = task
-        # broadcast task to all nodes under /worker
         task = json.dumps(serialize_task(cls.CURRENT_TASK))
         for node_id, node_meta_data in cls.CONNECTED_NODES_METADATA.items():
             await socket_connection.emit(
@@ -124,7 +135,7 @@ class MasterAPIInterface:
                 room=node_meta_data["sid"],
                 namespace="/worker",
             )
-            print(f"____task sent to : {node_id}____")
+            LOG.debug(f"task sent to node {node_id}")
 
     @classmethod
     def insert_map_result_data(cls, map_keys: list):
@@ -166,6 +177,7 @@ class MasterAPIInterface:
     @classmethod
     async def trigger_task_queue(cls, socket_connection: socketio.Namespace):
         async for data in TaskQueueSingleton.dequeue():
+            LOG.debug(f"new task has been inserted {data}")
             deserialized_task = deserialize_task(json.loads(data))
             MasterAPIInterface.RESULTS[deserialized_task.job_id] = {
                 "start_time": datetime.datetime.now().timestamp()
@@ -183,4 +195,8 @@ class MasterAPIInterface:
 
     @classmethod
     def fetch_result(cls, job_id: str) -> dict:
-        return MasterAPIInterface.RESULTS.get(job_id)
+        return (
+            {"result": None}
+            if MasterAPIInterface.RESULTS.get(job_id, None) is None
+            else MasterAPIInterface.RESULTS.get(job_id, None)
+        )

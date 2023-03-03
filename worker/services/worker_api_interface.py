@@ -7,9 +7,12 @@ from typing import Any, Dict, Union
 
 import socketio
 
+from common.logger_module import get_logger
 from common.models import Task
 from worker.services.mapper_and_reducer import (MapperAndReducer,
                                                 mapper_and_reducer_factory)
+
+LOG = get_logger(__name__)
 
 
 class WorkerAPIInterface:
@@ -35,12 +38,14 @@ class WorkerAPIInterface:
         cls.RECORD_FILE = None
         cls.MAP_REDUCE_HANDLER = None
         cls.CURRENT_TASK = None
+        LOG.debug("reset all state variables")
 
     @classmethod
     def prepare_for_next_task(cls):
         cls.MAP_REDUCE_HANDLER.reset_state()
         cls.MAP_REDUCE_HANDLER = None
         cls.CURRENT_TASK = None
+        LOG.debug("prepare for next task")
 
     @classmethod
     def build_csv_file_from_chunks(cls, chunk: bytes):

@@ -10,8 +10,8 @@ websocket_handler = BluePrint()
 CHUNK_SIZE = 1024 * 100
 
 
-async def stream_file(sio: AsyncClient):
-    file = open("random_data_3.csv", "rb")
+async def stream_file(sio: AsyncClient, *args):
+    file = open(args[0], "rb")
     chunks = []
     temp_chunk = file.read(CHUNK_SIZE)
     while temp_chunk:
@@ -35,14 +35,15 @@ async def stream_file(sio: AsyncClient):
 
 
 @websocket_handler.add_route(event="init_sequence", event_type=EventTypes.WEBSOCKET)
-async def init_sequence(sio: AsyncClient):
+async def init_sequence(sio: AsyncClient, *args):
     """stream file to master node and start the job queue"""
-    await stream_file(sio)
+    await stream_file(sio, *args)
     await sio.emit(
         "trigger_task_queue",
         {},
         namespace="/client",
     )
+    print("task queue has been triggered")
     with Progress(
         SpinnerColumn(),
         TextColumn("[progress.description]{task.description}"),
@@ -55,9 +56,9 @@ async def init_sequence(sio: AsyncClient):
 
 
 @websocket_handler.add_route(event="file_stream", event_type=EventTypes.WEBSOCKET)
-async def file_stream(sio: AsyncClient):
+async def file_stream(sio: AsyncClient, *args):
     """stream file to master node"""
-    await stream_file(sio)
+    await stream_file(sio, *args)
     with Progress(
         SpinnerColumn(),
         TextColumn("[progress.description]{task.description}"),
@@ -70,7 +71,7 @@ async def file_stream(sio: AsyncClient):
 
 
 @websocket_handler.add_route(event="reset_state", event_type=EventTypes.WEBSOCKET)
-async def reset_state(sio: AsyncClient):
+async def reset_state(sio: AsyncClient, *args):
     """reset state of all nodes including master and workers"""
     await sio.emit("reset_state", {}, namespace="/client")
     await sio.wait()

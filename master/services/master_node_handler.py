@@ -6,7 +6,10 @@ from typing import Any, Dict, Generator, List, Union
 import numpy as np
 import pandas as pd
 
+from common.logger_module import get_logger
 from common.models import FileModel, Task, serialize_file_model
+
+LOG = get_logger(__name__)
 
 
 class MasterNode:
@@ -47,7 +50,7 @@ class MasterNode:
                     FileModel(chunk=chunk, chunk_index=index, completed=False)
                 )
             )
-            print(f"sent chunk: {index + 1}")
+            LOG.debug(f"sent chunk: {index + 1}")
             yield file_chunk
 
     def reset_state(self) -> None:

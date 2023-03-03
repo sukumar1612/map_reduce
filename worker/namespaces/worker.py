@@ -2,21 +2,26 @@ import json
 
 import socketio
 
+from common.logger_module import get_logger
 from common.models import deserialize_file_model, deserialize_task
 from worker.services.worker_api_interface import WorkerAPIInterface
+
+LOG = get_logger(__name__)
 
 
 class WorkerNamespace(socketio.ClientNamespace):
     def on_connect(self):
-        print("______connected to server______")
+        LOG.debug("connected to the server")
 
     def on_assign_node_id(self, message_body: dict):
         WorkerAPIInterface.WORKER_ID = int(message_body["node_id"])
-        print(f"connected to master, worker node id : {WorkerAPIInterface.WORKER_ID}")
+        LOG.debug(
+            f"connected to master, worker node id : {WorkerAPIInterface.WORKER_ID}"
+        )
 
     def on_worker_node_initialization(self, message_body: dict):
-        print(message_body.get("completed"))
         if message_body.get("completed", None) is True:
+            LOG.debug("---received final chunk---")
             self.emit(
                 "file_init_done",
                 {},
@@ -24,7 +29,7 @@ class WorkerNamespace(socketio.ClientNamespace):
             )
             return
         file_chunk = deserialize_file_model(json.loads(message_body["chunk"]))
-        print(f"__received chunk {file_chunk.chunk_index}__")
+        LOG.debug(f"received chunk: {file_chunk.chunk_index}")
         WorkerAPIInterface.build_csv_file_from_chunks(file_chunk.chunk)
 
     def on_add_task(self, message_body: dict):
@@ -36,7 +41,7 @@ class WorkerNamespace(socketio.ClientNamespace):
             {"map_keys": WorkerAPIInterface.perform_mapping_and_return_distinct_keys()},
             namespace="/worker",
         )
-        print("___________performed mapping___________")
+        LOG.debug("--mapping successful--")
 
     def on_insert_reduce_keys(self, message_body: dict):
         WorkerAPIInterface.insert_reduce_keys_for_current_node(
@@ -55,5 +60,5 @@ class WorkerNamespace(socketio.ClientNamespace):
         WorkerAPIInterface.prepare_for_next_task()
 
     def on_reset_state(self, message_body: dict):
-        print(f"reset worker node : {WorkerAPIInterface.WORKER_ID}")
+        LOG.debug(f"reset worker node : {WorkerAPIInterface.WORKER_ID}")
         WorkerAPIInterface.reset_state()

@@ -49,7 +49,7 @@ class Router(BluePrint):
                     print(f"\n-> command :: {key}")
                     print(f"description:: {value['description']}")
 
-            route_meta_data = self.get_route_handler(event)
+            route_meta_data = self.get_route_handler(event.split(" ")[0])
             if route_meta_data is None:
                 print("______NO SUCH EVENT______")
             elif route_meta_data.get("event_type") == EventTypes.WEBSOCKET:
@@ -58,7 +58,10 @@ class Router(BluePrint):
                     socketio_path=self.sio_path,
                     namespaces=["/client"],
                 )
-                await route_meta_data.get("handler")(self.sio)
+                if len(event.split(" ")) >= 2:
+                    await route_meta_data.get("handler")(self.sio, event.split(" ")[1])
+                else:
+                    await route_meta_data.get("handler")(self.sio)
             elif route_meta_data.get("event_type") == EventTypes.HTTP:
                 route_meta_data.get("handler")(self.http_base_url)
             elif route_meta_data.get("event_type") == EventTypes.COMMAND:

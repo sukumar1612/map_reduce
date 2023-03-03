@@ -1,3 +1,4 @@
+import copy
 import json
 
 import requests
@@ -13,6 +14,7 @@ http_handler = BluePrint()
 def fetch_results(http_base_url: str):
     """fetch results submitted to master node"""
     for job in StateManager.jobs:
+        print(f"id: {job.job_id}")
         response = requests.get(
             url=f"{http_base_url}/fetch-result", params={"job_id": job.job_id}
         ).json()
@@ -30,7 +32,7 @@ def fetch_all_results(http_base_url: str):
 def add_tasks(http_base_url: str):
     """add a task to master node"""
     for job in StateManager.jobs:
-        serialized_task = json.dumps(serialize_task(job))
+        serialized_task = json.dumps(serialize_task(copy.deepcopy(job)))
         requests.post(url=f"{http_base_url}/add-task", json={"task": serialized_task})
 
     print(f"Result: added {len(StateManager.jobs)} tasks")

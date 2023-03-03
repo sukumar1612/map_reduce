@@ -3,15 +3,19 @@ import json
 
 import socketio
 
+from common.logger_module import get_logger
 from common.models import deserialize_file_model
 from master.services.master_api_interface import MasterAPIInterface
 
 LOCK = asyncio.Lock()
+LOG = get_logger(__name__)
 
 
 class ClientConnectionNamespace(socketio.AsyncNamespace):
     async def on_connect(self, sid: str, environ: dict):
-        print("__client connected__")
+        LOG.debug(
+            f"client connected with ip : http://{environ.get('asgi.scope').get('client')[0]}"
+        )
 
     async def on_file_initialization(self, sid, message_body: dict):
         if message_body.get("completed", None) is True:
@@ -20,13 +24,14 @@ class ClientConnectionNamespace(socketio.AsyncNamespace):
             )
             return
         file_chunk = deserialize_file_model(json.loads(message_body["chunk"]))
-        print(f"__received chunk {file_chunk.chunk_index}__")
+        LOG.debug(f"received chunk {file_chunk.chunk_index}")
         async with LOCK:
             MasterAPIInterface.build_csv_file_from_chunks(file_chunk.chunk)
 
     async def on_trigger_task_queue(self, sid: str, message_body: dict):
         asyncio.create_task(MasterAPIInterface.trigger_task_queue(self))
+        LOG.debug("Task queue started")
 
     async def on_reset_state(self, sid: str, message_body: dict):
-        print("__master reset__")
         await MasterAPIInterface.reset_state(self, sid=sid)
+        LOG.debug("master has been reset")

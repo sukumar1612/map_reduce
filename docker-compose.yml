@@ -4,6 +4,8 @@ services:
     image: master_node
     ports:
       - "5000:5000"
+    environment:
+      - LOGGING_LEVEL=DEBUG
     networks:
       map-reduce-network:
         aliases:
@@ -18,6 +20,7 @@ services:
     environment:
       - MASTER_HOST_IP=master-node-alias
       - WORKER_HOST_IP=0.0.0.0
+      - LOGGING_LEVEL=DEBUG
 
   worker-node-2:
     image: worker_node
@@ -28,6 +31,7 @@ services:
     environment:
       - MASTER_HOST_IP=master-node-alias
       - WORKER_HOST_IP=0.0.0.0
+      - LOGGING_LEVEL=DEBUG
 
 networks:
   map-reduce-network: {}
