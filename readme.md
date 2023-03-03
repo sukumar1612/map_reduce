@@ -1,4 +1,4 @@
-# Distributed Map Reduce using Python and Docker
+# Distributed Map Reduce Framework using Python and Docker
 
 This project is my take on creating a Distributed Map Reduce framework in python
 
