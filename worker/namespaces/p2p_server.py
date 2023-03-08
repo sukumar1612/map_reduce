@@ -5,7 +5,7 @@ import tempfile
 import socketio
 
 from common.logger_module import get_logger
-from worker.services.worker_api_interface import WorkerAPIInterface
+from worker.services.worker_api_interface import TaskTracker
 
 p2p_server = socketio.Server()
 app = socketio.WSGIApp(p2p_server)
@@ -18,9 +18,7 @@ class P2PServerNamespace(socketio.Namespace):
         LOG.debug(f' received key list : {message_body["key_list"]}')
         file = tempfile.NamedTemporaryFile()
         pickle.dump(
-            WorkerAPIInterface.fetch_mapped_value_for_specific_key(
-                message_body["key_list"]
-            ),
+            TaskTracker.fetch_mapped_value_for_specific_key(message_body["key_list"]),
             file,
             pickle.HIGHEST_PROTOCOL,
         )

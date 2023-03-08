@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel
 
 from common.logger_module import get_logger
-from master.services.master_api_interface import MasterAPIInterface
+from master.services.master_api_interface import JobTracker
 
 app = FastAPI()
 
@@ -16,29 +16,27 @@ class TaskMessage(BaseModel):
 
 @app.post("/add-task")
 async def add_task(task: TaskMessage) -> Response:
-    await MasterAPIInterface.add_task(task.task)
+    await JobTracker.add_task(task.task)
     LOG.debug(f"added task {task.task}")
     return Response(status_code=201)
 
 
 @app.delete("/delete-all-results")
 async def delete_all_results() -> Response:
-    MasterAPIInterface.RESULTS.clear()
+    JobTracker.RESULTS.clear()
     LOG.debug(f"All results are deleted")
     return Response(status_code=204)
 
 
 @app.get("/fetch-result")
 async def fetch_result(job_id: str) -> Response:
-    LOG.debug(f"Result: {MasterAPIInterface.RESULTS.get(job_id)}")
+    LOG.debug(f"Result: {JobTracker.RESULTS.get(job_id)}")
     if (
-        job_id in MasterAPIInterface.RESULTS.keys()
-        and MasterAPIInterface.RESULTS[job_id].get("result", None) is not None
+        job_id in JobTracker.RESULTS.keys()
+        and JobTracker.RESULTS[job_id].get("result", None) is not None
     ):
-        return JSONResponse(
-            content=MasterAPIInterface.fetch_result(job_id), status_code=200
-        )
-    elif job_id in MasterAPIInterface.RESULTS.keys():
+        return JSONResponse(content=JobTracker.fetch_result(job_id), status_code=200)
+    elif job_id in JobTracker.RESULTS.keys():
         LOG.debug("task in progress")
         return JSONResponse(content={"status": "In Progress"}, status_code=200)
     else:
@@ -49,7 +47,7 @@ async def fetch_result(job_id: str) -> Response:
 @app.get("/fetch-all-results")
 async def fetch_all_results() -> Response:
     final_results = []
-    for job_id, data in MasterAPIInterface.RESULTS.items():
+    for job_id, data in JobTracker.RESULTS.items():
         if data.get("result", None) is not None:
             final_results.append(data)
         else:

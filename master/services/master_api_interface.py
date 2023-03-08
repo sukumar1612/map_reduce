@@ -15,7 +15,7 @@ from master.services.task_queue import TaskQueueSingleton
 LOG = get_logger(__name__)
 
 
-class MasterAPIInterface:
+class JobTracker:
     TASK_COMPLETE = asyncio.Event()
     RECORD_FILE: Union[TextIOWrapper, None] = None
     CURRENT_TASK: Union[Task, None] = None
@@ -165,7 +165,7 @@ class MasterAPIInterface:
                 namespace="/worker",
             )
             number_of_nodes_assigned_reduce_keys += 1
-        MasterAPIInterface.COUNT_OF_REDUCE_RESULTS_RECEIVED = (
+        JobTracker.COUNT_OF_REDUCE_RESULTS_RECEIVED = (
             number_of_nodes_assigned_reduce_keys
         )
 
@@ -179,15 +179,15 @@ class MasterAPIInterface:
         async for data in TaskQueueSingleton.dequeue():
             LOG.debug(f"new task has been inserted {data}")
             deserialized_task = deserialize_task(json.loads(data))
-            MasterAPIInterface.RESULTS[deserialized_task.job_id] = {
+            JobTracker.RESULTS[deserialized_task.job_id] = {
                 "start_time": datetime.datetime.now().timestamp()
             }
-            await MasterAPIInterface.add_and_distribute_task(
+            await JobTracker.add_and_distribute_task(
                 task=deserialized_task,
                 socket_connection=socket_connection,
             )
-            MasterAPIInterface.TASK_COMPLETE.clear()
-            await MasterAPIInterface.TASK_COMPLETE.wait()
+            JobTracker.TASK_COMPLETE.clear()
+            await JobTracker.TASK_COMPLETE.wait()
 
     @staticmethod
     async def add_task(task: str) -> None:
@@ -197,6 +197,6 @@ class MasterAPIInterface:
     def fetch_result(cls, job_id: str) -> dict:
         return (
             {"result": None}
-            if MasterAPIInterface.RESULTS.get(job_id, None) is None
-            else MasterAPIInterface.RESULTS.get(job_id, None)
+            if JobTracker.RESULTS.get(job_id, None) is None
+            else JobTracker.RESULTS.get(job_id, None)
         )

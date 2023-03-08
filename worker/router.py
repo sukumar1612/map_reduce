@@ -6,7 +6,7 @@ import socketio
 from common.logger_module import get_logger
 from worker.namespaces.p2p_server import app
 from worker.namespaces.worker import WorkerNamespace
-from worker.services.worker_api_interface import WorkerAPIInterface
+from worker.services.worker_api_interface import TaskTracker
 
 sio_worker = socketio.Client(request_timeout=1200)
 sio_worker.register_namespace(WorkerNamespace("/worker"))
@@ -15,7 +15,7 @@ LOG = get_logger(__name__)
 
 
 def worker_client_process(host: str, shared_map: dict):
-    WorkerAPIInterface.SHARED_MAP_VALUE = shared_map
+    TaskTracker.SHARED_MAP_VALUE = shared_map
     LOG.debug("started worker node client process")
     # http://{host}:5000/ws/socket.io/ is the endpoint for socket io connection
     sio_worker.connect(
@@ -25,7 +25,7 @@ def worker_client_process(host: str, shared_map: dict):
 
 
 def worker_server_process(host: str, shared_map: dict):
-    WorkerAPIInterface.SHARED_MAP_VALUE = shared_map
+    TaskTracker.SHARED_MAP_VALUE = shared_map
     LOG.debug("started worker node server process")
     eventlet.wsgi.server(eventlet.listen((host, 7000)), app)
 

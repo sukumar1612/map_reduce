@@ -15,7 +15,7 @@ from worker.services.mapper_and_reducer import (MapperAndReducer,
 LOG = get_logger(__name__)
 
 
-class WorkerAPIInterface:
+class TaskTracker:
     RECORD_FILE: Union[TextIOWrapper, None] = None
     CURRENT_TASK: Union[Task, None] = None
     WORKER_ID: Union[int, None] = None
@@ -98,9 +98,7 @@ class WorkerAPIInterface:
         return {key: cls.SHARED_MAP_VALUE.get(key, None) for key in key_list}
 
 
-async def receive_other_node_map_data(
-    api_interface: WorkerAPIInterface, ip: str
-) -> Any:
+async def receive_other_node_map_data(api_interface: TaskTracker, ip: str) -> Any:
     socket_connection = socketio.AsyncClient()
     file = tempfile.NamedTemporaryFile()
 
