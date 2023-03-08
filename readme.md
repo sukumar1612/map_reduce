@@ -37,6 +37,14 @@ pip install -r requirements.txt
 This repository contains sample containers that could be used for testing purposes
 [sg162/map_reduce](https://hub.docker.com/repository/docker/sg162/map_reduce/general)
 
+## Run
+To run this project, have docker desktop installed with docker compose
+
+Then run this project using this command
+```bash
+docker-compose -f docker-compose.yml up -d
+```
+
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 
