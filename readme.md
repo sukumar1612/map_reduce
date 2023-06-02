@@ -54,7 +54,7 @@ Please make sure to update requirements.txt as appropriate.
 
 [Apache License 2.0](https://choosealicense.com/licenses/apache-2.0/)
 
-## Meduim post on this project
+## Medium post on this project
 [Implementation of a Simple Distributed Map Reduce Framework built on Python](https://medium.com/@ganesansukumarwork/implementation-of-a-simple-distributed-map-reduce-framework-built-on-python-575b1a5025d8)
 
 ## Author
